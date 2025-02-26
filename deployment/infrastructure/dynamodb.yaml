@@ -30,8 +30,8 @@ Mappings:
     CodekitDynamoDB: # Variant for the Codekit
       BillingMode:     'PROVISIONED'
 
-      DevicesReadMinCU:    '130000'
-      DevicesReadMaxCU:    '130000'
+      DevicesReadMinCU:    '50000'
+      DevicesReadMaxCU:    '50000'
       DevicesWriteMinCU:   '25'
       DevicesWriteMaxCU:   '25'
 
