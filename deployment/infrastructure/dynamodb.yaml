@@ -99,8 +99,8 @@ Mappings:
       CampaignsWriteMinCU: '25'
       CampaignsWriteMaxCU: '25'
 
-      BudgetsReadMinCU: '100000'
-      BudgetsReadMaxCU: '100000'
+      BudgetsReadMinCU: '80000'
+      BudgetsReadMaxCU: '80000'
       BudgetsWriteMinCU: '25'
       BudgetsWriteMaxCU: '25'
 
@@ -112,7 +112,7 @@ Mappings:
       BillingMode:     'PROVISIONED'
 
       DevicesReadMinCU:    '40000'
-      DevicesReadMaxCU:    '120000'
+      DevicesReadMaxCU:    '80000'
       DevicesWriteMinCU:   '25'
       DevicesWriteMaxCU:   '25'
 
