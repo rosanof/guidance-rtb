@@ -49,8 +49,8 @@ Mappings:
       EksBenchmarkNodeGroupSizeMin: '1'
       EksBenchmarkNodeGroupSizeMax: '1'
 
-      EksApplicationNodeGroupInstanceType: 'm6g.16xlarge'
-      EksBenchmarkNodeGroupInstanceType: 'm6g.16xlarge'
+      EksApplicationNodeGroupInstanceType: 'm6g.4xlarge'
+      EksBenchmarkNodeGroupInstanceType: 'm6g.4xlarge'
 
       AerospikeNodeGroupSize: '8'
       AerospikeInstanceType: 'i3en.24xlarge'
@@ -70,8 +70,8 @@ Mappings:
       DaxScaleOutEvaluationMinutes: '2'
       SingleAZ: '1'
 
-      KinesisBenchmarkMinShardCount: '2048'
-      KinesisBenchmarkMaxShardCount: '2048'
+      KinesisBenchmarkMinShardCount: '100'
+      KinesisBenchmarkMaxShardCount: '100'
 
       KinesisBenchmarkScaleOutUtilization: '80'
       KinesisBenchmarkScaleInUtilization: '50'
