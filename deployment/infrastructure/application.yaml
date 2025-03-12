@@ -712,7 +712,7 @@ Resources:
     Properties:
       TemplateURL: ./templates/vpc.yaml
       Parameters:
-        EksClusterName: !Ref AWS::StackName
+        EksClusterName: !Ref RootStackName
         RootStackName: !Ref RootStackName
       Tags:
         - Key: stackName
