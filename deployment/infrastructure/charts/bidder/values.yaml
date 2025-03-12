@@ -160,7 +160,7 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 80
   targetPort: 8090
 
@@ -197,7 +197,7 @@ hpa:
   enabled: false
 
   replicas:
-    min: 30
+    min: 5
     max: 120
 
   metrics: []

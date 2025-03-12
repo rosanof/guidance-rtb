@@ -61,19 +61,14 @@ class PipelineStack(Stack):
         cb_source = cb.Source.git_hub(
             owner=repo_owner,
             repo=repo_name,
-            webhook=True,
-            webhook_triggers_batch_build=True,
-            webhook_filters=[
-                cb.FilterGroup.in_event_of(cb.EventAction.PUSH).and_branch_is(repo_branch).and_commit_message_is("the commit message"),
-                # cb.FilterGroup.in_event_of(cb.EventAction.RELEASED).and_branch_is(repo_branch)
-            ]
+            webhook=False
         )
         # Defines the artifact representing the sourcecode
         source_artifact = cp.Artifact()
         # Defines the artifact representing the cloud assembly
         # (cloudformation template + all other assets)
         cloud_assembly_artifact = cp.Artifact()
-
+        print("secret id: " + secret_id);
         source_action=cpa.GitHubSourceAction(
             action_name='GitHubSourceAction', 
             owner=repo_owner,
