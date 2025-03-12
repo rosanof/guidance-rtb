@@ -88,7 +88,7 @@ Increase the following service limits via Service Quotas section in AWS Console.
     cp cdk/pipeline/cdk.context.json.example cdk/pipeline/cdk.context.json
     ```
 
-5.  Update the `GITHUB_TOKEN_SECRET_ID`,`ROOT_STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike) and variables on the `cdk.context.json`:
+5.  Update the `GITHUB_TOKEN_SECRET_ID`,`ROOT_STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and variables on the `cdk.context.json`:
     ```
     {
         "dev": {
@@ -97,7 +97,7 @@ Increase the following service limits via Service Quotas section in AWS Console.
         },
         "shared": {
             "ROOT_STACK_NAME": "aws-rtbkit",
-            "STACK_VARIANT": "DynamoDB", #-- [DynamoDB|Aerospike]
+            "STACK_VARIANT": "DynamoDB", #-- [DynamoDB|Aerospike|DynambDBBasic]
             "REPO_OWNER":"", #-- Owner of the fork repo
             "REPO_NAME":"" #-- Name of the fork repo
         }

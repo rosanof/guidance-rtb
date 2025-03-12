@@ -9,6 +9,7 @@ Parameters:
     AllowedValues:
       - 'CodekitAerospike'
       - 'CodekitDynamoDB'
+      - 'CodekitDynamoDBBasic'
 
   RepositoryURL:
     Type: String
@@ -16,8 +17,8 @@ Parameters:
     Default: https://bitbucket.org/aws-bidder/bidder.git
 
 Conditions:
-  DeployDynamoDB: !Equals ['CodekitDynamoDB', !Ref Variant ]
-
+  DeployDynamoDB: !Or [!Equals ['CodekitDynamoDB', !Ref Variant ], !Equals ['CodekitDynamoDBBasic', !Ref Variant ]]
+  
 Resources:
   GolangMirror:
     Type: AWS::ECR::Repository

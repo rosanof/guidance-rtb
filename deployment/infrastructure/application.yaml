@@ -40,17 +40,18 @@ Parameters:
       - 'CodekitAerospike'
       - 'CodekitDynamoDB'
       - 'BenchmarkAB-629'
+      - 'CodekitDynamoDBBasic'
 
 Mappings:
   VariantConfig:
-    CodekitAerospike: # Variant for development and basic tests
+    CodekitAerospike: # Variant for codekit
       EksApplicationNodeGroupSizeMin: '1'
       EksApplicationNodeGroupSizeMax: '1'
       EksBenchmarkNodeGroupSizeMin: '1'
       EksBenchmarkNodeGroupSizeMax: '1'
 
-      EksApplicationNodeGroupInstanceType: 'm6g.4xlarge'
-      EksBenchmarkNodeGroupInstanceType: 'm6g.4xlarge'
+      EksApplicationNodeGroupInstanceType: 'm6g.16xlarge'
+      EksBenchmarkNodeGroupInstanceType: 'm6g.16xlarge'
 
       AerospikeNodeGroupSize: '8'
       AerospikeInstanceType: 'i3en.24xlarge'
@@ -70,8 +71,8 @@ Mappings:
       DaxScaleOutEvaluationMinutes: '2'
       SingleAZ: '1'
 
-      KinesisBenchmarkMinShardCount: '100'
-      KinesisBenchmarkMaxShardCount: '100'
+      KinesisBenchmarkMinShardCount: '2048'
+      KinesisBenchmarkMaxShardCount: '2048'
 
       KinesisBenchmarkScaleOutUtilization: '80'
       KinesisBenchmarkScaleInUtilization: '50'
@@ -80,7 +81,7 @@ Mappings:
       KinesisBenchmarkScaleOutEvaluationMinutes: '1'
       KinesisBenchmarkScaleInEvaluationMinutes: '10'
 
-    CodekitDynamoDB: # Variant for development and basic tests
+    CodekitDynamoDB: # Variant for codekit
       EksApplicationNodeGroupInstanceType: 'm6g.16xlarge'
       EksBenchmarkNodeGroupInstanceType: 'm6g.16xlarge'
       EksApplicationNodeGroupSizeMin: '1'
@@ -116,6 +117,43 @@ Mappings:
       KinesisBenchmarkScaleInPercent: '-20'
       KinesisBenchmarkScaleOutEvaluationMinutes: '1'
       KinesisBenchmarkScaleInEvaluationMinutes: '10'
+
+    CodekitDynamoDBBasic: # Variant for codekit with quick start without increasing limits
+      EksApplicationNodeGroupInstanceType: 'm6g.16xlarge'
+      EksBenchmarkNodeGroupInstanceType: 'm6g.16xlarge'
+      EksApplicationNodeGroupSizeMin: '1'
+      EksApplicationNodeGroupSizeMax: '1'
+      EksBenchmarkNodeGroupSizeMin: '1'
+      EksBenchmarkNodeGroupSizeMax: '1'
+
+      AerospikeNodeGroupSize: '0'
+      AerospikeInstanceType: 'i3.large'
+
+      BasicArmNodeGroupSize: '2'
+      BasicX86NodeGroupSize: '2'
+      BasicArmInstanceType: 'm6g.medium'
+      StaticCPUManagerPolicy: '1'
+
+      DaxNodeType:                  'dax.t3.small'     # DAX node instance type
+      DaxMinNodeCount:              '0'                # Minimum number of DAX nodes
+      DaxMaxNodeCount:              '0'                # Maximum number of DAX nodes
+
+      DaxScaleInUtilization:        '40'               # CPU utilization below what DAX will be scaled in
+      DaxScaleOutUtilization:       '75'               # CPU utilization above what DAX will be scaled out
+      DaxScaleInEvaluationMinutes:  '10'               # How many minutes the utilization must be below the level before scale in
+      DaxScaleOutEvaluationMinutes: '2'                # How many minutes the utilization must be above the level before scale out
+
+      SingleAZ: '1'
+
+      KinesisBenchmarkMinShardCount:             '200'   # Minimum number of shards
+      KinesisBenchmarkMaxShardCount:             '200'   # Maximum number of shards
+
+      KinesisBenchmarkScaleOutUtilization:       '80'  # Utilization above what Kinesis will be scaled out
+      KinesisBenchmarkScaleInUtilization:        '50'  # Utilization below what Kinesis will be scaled in
+      KinesisBenchmarkScaleOutPercent:           '30'  # In percent capacity change for scale out
+      KinesisBenchmarkScaleInPercent:            '-20' # In percent capacity change for scale in
+      KinesisBenchmarkScaleOutEvaluationMinutes: '1'   # How many minutes the utilization must be above the level before scale out
+      KinesisBenchmarkScaleInEvaluationMinutes:  '10'  # How many minutes the utilization must be below the level before scale in
 
     Basic: # Variant for development and basic tests
       EksApplicationNodeGroupInstanceType: 'm6g.16xlarge'
@@ -747,6 +785,7 @@ Resources:
         DeliveryStreamBufferSize:     '128'
         DeliveryStreamCompression:    'GZIP'
         ProducerRoleARN: !Ref EksWorkerRoleArn
+        Variant: !Ref Variant
       Tags:
         - Key: stackName
           Value: !Ref AWS::StackName

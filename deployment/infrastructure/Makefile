@@ -122,11 +122,21 @@ eks@provision-codekit-aerospike: eks@provision-prometheus
 eks@provision-codekit-aerospike: eks@provision-prometheus-adapter
 eks@provision-codekit-aerospike: eks@provision-ebs-csi
 eks@provision-codekit-aerospike: eks@provision-nvme
+eks@provision-codekit-aerospike: eks@provision-autoscaler
 
 eks@provision-codekit-dynamodb: eks@update-dashboards ## Provision basic services to EKS cluster
 eks@provision-codekit-dynamodb: eks@provision-prometheus
 eks@provision-codekit-dynamodb: eks@provision-prometheus-adapter
 eks@provision-codekit-dynamodb: eks@provision-ebs-csi
+eks@provision-codekit-dynamodb: eks@provision-nvme
+eks@provision-codekit-dynamodb: eks@provision-autoscaler
+
+eks@provision-codekit-dynamodbbasic: eks@update-dashboards ## Provision basic services to EKS cluster
+eks@provision-codekit-dynamodbbasic: eks@provision-prometheus
+eks@provision-codekit-dynamodbbasic: eks@provision-prometheus-adapter
+eks@provision-codekit-dynamodbbasic: eks@provision-ebs-csi
+eks@provision-codekit-dynamodbbasic: eks@provision-nvme
+eks@provision-codekit-dynamodbbasic: eks@provision-autoscaler
 
 eks@update-dashboards: ## Update Grafana dashboards on EKS
 	kubectl apply -k deployment/infrastructure/deployment/prometheus/dashboards

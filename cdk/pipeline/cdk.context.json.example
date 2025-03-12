@@ -5,7 +5,7 @@
     },
     "shared": {
         "ROOT_STACK_NAME": "aws-rtbkit",
-        "STACK_VARIANT": "DynamoDB",
+        "STACK_VARIANT": "DynamoDBBasic",
         "REPO_OWNER":"",
         "REPO_NAME":""
     }

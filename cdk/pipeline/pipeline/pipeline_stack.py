@@ -39,7 +39,7 @@ class PipelineStack(Stack):
             root_stack_name = shared_context["ROOT_STACK_NAME"].lower().replace("_", "-")
         
         if not shared_context["STACK_VARIANT"]:
-            stack_variant = "DynamoDB"
+            stack_variant = "DynamoDBBasic"
         else:
             stack_variant = shared_context["STACK_VARIANT"]
         

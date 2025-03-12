@@ -45,7 +45,7 @@ export VARIANT=$4
 
 export USE_DATAGEN=$5
 
-if ! sh -c "echo $VARIANT | grep -q -E '^(DynamoDB|Aerospike)$'" ; then
+if ! sh -c "echo $VARIANT | grep -q -E '^(DynamoDB|Aerospike|DynamoDBBasic|)$'" ; then
     echo "Unsupported database variant: ${VARIANT}"
     exit 1
 fi

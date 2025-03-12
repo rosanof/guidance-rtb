@@ -6,12 +6,12 @@ Parameters:
     Type: String
     Description: Variant of infrastructure to deploy
     AllowedValues:
-    - Basic
+    - CodekitDynamoDBBasic
     - BenchmarkDynamoDB
     - BenchmarkAutoscale
     - BenchmarkAutoscale
     - CodekitDynamoDB
-    Default: 'Basic'
+    Default: 'CodekitDynamoDBBasic'
     
   EksWorkerRoleARN:
     Type: String
@@ -30,8 +30,8 @@ Mappings:
     CodekitDynamoDB: # Variant for the Codekit
       BillingMode:     'PROVISIONED'
 
-      DevicesReadMinCU:    '50000'
-      DevicesReadMaxCU:    '50000'
+      DevicesReadMinCU:    '130000'
+      DevicesReadMaxCU:    '130000'
       DevicesWriteMinCU:   '25'
       DevicesWriteMaxCU:   '25'
 
@@ -54,8 +54,8 @@ Mappings:
       ScaleInCooldown:     '600'
       ScaleOutCooldown:    '60'
 
-    Basic: # Variant for development and basic tests with autoscaling enabled
-      BillingMode:     'PROVISIONED'
+    CodekitDynamoDBBasic: # Variant for development and basic tests with autoscaling enabled
+      BillingMode:     'PAY_PER_REQUEST'
 
       DevicesReadMinCU:    '25'
       DevicesReadMaxCU:    '25'
@@ -99,8 +99,8 @@ Mappings:
       CampaignsWriteMinCU: '25'
       CampaignsWriteMaxCU: '25'
 
-      BudgetsReadMinCU: '80000'
-      BudgetsReadMaxCU: '80000'
+      BudgetsReadMinCU: '100000'
+      BudgetsReadMaxCU: '100000'
       BudgetsWriteMinCU: '25'
       BudgetsWriteMaxCU: '25'
 
@@ -112,7 +112,7 @@ Mappings:
       BillingMode:     'PROVISIONED'
 
       DevicesReadMinCU:    '40000'
-      DevicesReadMaxCU:    '80000'
+      DevicesReadMaxCU:    '120000'
       DevicesWriteMinCU:   '25'
       DevicesWriteMaxCU:   '25'
 
