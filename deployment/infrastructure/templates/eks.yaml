@@ -35,7 +35,7 @@ Parameters:
   NodeGroupReleaseVersion:
     Type: String
     Description: Release version of the Node group
-    Default: "1.30.2-20240729"
+    Default: "1.31.5-20250228"
 
   BasicArmNodeGroupSize:
     Type: Number
@@ -95,7 +95,7 @@ Parameters:
   BenchmarkInstanceType:
     Type: CommaDelimitedList
     Description: Instance type of benchmark node group
-    Default: m6g.12xlarge
+    Default: m6g.2xlarge
 
   BenchmarkAmiType:
     Type: String
