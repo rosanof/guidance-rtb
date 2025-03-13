@@ -184,7 +184,7 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Subnet04'
         - Key: kubernetes.io/role/elb
-          Value: '0'
+          Value: '1'
         - Key: !Sub 'kubernetes.io/cluster/${EksClusterName}'
           Value: 'shared'
 
