@@ -216,7 +216,7 @@ eks@cleanup: ## Remove application from EKS
 
 ## All variables passed to the load generator are listed here with their defaults; remember to specify duration unit.
 benchmark@run: LOAD_GENERATOR_OVERLAY_TEMP=$(shell mktemp)
-benchmark@run: TARGET="http://bidder/bidrequest"
+benchmark@run: TARGET="http://rtb-bidder-iad-shapirov-7926bd20a089a15d.elb.us-east-1.amazonaws.com/bidrequest"
 benchmark@run: VALUES="$(LOAD_GENERATOR_OVERLAY_TEMP)"
 benchmark@run: IMAGE_PREFIX=$(STACK_NAME)-
 benchmark@run: ## Start benchmark
@@ -269,7 +269,7 @@ benchmark@cleanup-bidder: ## Cleanup pods after benchmark
 LOAD_GENERATOR_OVERLAY_TEMP:=$(shell mktemp)
 benchmark@codekit: ## Start a Codekit benchmark
 		envsubst < deployment/infrastructure/deployment/load-generator/overlay-codekit.yaml.tmpl > $(LOAD_GENERATOR_OVERLAY_TEMP) && \
-			TARGET="http://bidder/bidrequest"  $(MAKE) benchmark@run IMAGE_PREFIX=$(IMAGE_PREFIX) \
+			TARGET="http://rtb-bidder-iad-shapirov-7926bd20a089a15d.elb.us-east-1.amazonaws.com/bidrequest"  $(MAKE) benchmark@run IMAGE_PREFIX=$(IMAGE_PREFIX) \
 				RATE_PER_JOB=0 NUMBER_OF_JOBS=1 NUMBER_OF_DEVICES=1000 DURATION=10m VALUES="$(LOAD_GENERATOR_OVERLAY_TEMP)"
 
 

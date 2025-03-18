@@ -1,6 +1,6 @@
 {
     "dev": {
-        "REPO_BRANCH":"main",
+        "REPO_BRANCH":"feature/removing-pipeline",
         "GITHUB_TOKEN_SECRET_ID": "rtbkit-github-token"
     },
     "shared": {

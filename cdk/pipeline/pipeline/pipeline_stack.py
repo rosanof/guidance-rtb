@@ -3,13 +3,11 @@ import os
 from aws_cdk import (
     Stack,
     aws_codebuild as cb,
-    aws_codepipeline as cp,
-    aws_codepipeline_actions as cpa,
-    aws_iam as iam,
-    SecretValue
+    aws_iam as iam
 )
+
 from constructs import Construct
-class PipelineStack(Stack):
+class BuildStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, stage: str="dev" , **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -48,10 +46,6 @@ class PipelineStack(Stack):
         else:
             repo_branch = env_context["REPO_BRANCH"]
         
-        if not env_context["GITHUB_TOKEN_SECRET_ID"]:
-            secret_id = "rtbkit-github-token"
-        else:
-            secret_id = env_context["GITHUB_TOKEN_SECRET_ID"]
 
         # fix for issue #79 code commit deprecation
         # the solution now points to the opensource github repo by default
@@ -61,22 +55,10 @@ class PipelineStack(Stack):
         cb_source = cb.Source.git_hub(
             owner=repo_owner,
             repo=repo_name,
-            webhook=False
+            webhook=False,
+            branch_or_ref=repo_branch
         )
         # Defines the artifact representing the sourcecode
-        source_artifact = cp.Artifact()
-        # Defines the artifact representing the cloud assembly
-        # (cloudformation template + all other assets)
-        cloud_assembly_artifact = cp.Artifact()
-        print("secret id: " + secret_id);
-        source_action=cpa.GitHubSourceAction(
-            action_name='GitHubSourceAction', 
-            owner=repo_owner,
-            repo=repo_name,
-            oauth_token=SecretValue.secrets_manager(secret_id),
-            output=source_artifact,
-            branch=repo_branch
-        )
 
         rtb_pipeline_role = iam.Role(self, id="rtbkit_codebuild_role", role_name="rtbkit_codebuild_role",
             assumed_by=iam.CompositePrincipal(
@@ -101,35 +83,10 @@ class PipelineStack(Stack):
             source=cb_source,
             role=rtb_pipeline_role,
         )
-
-
-        pipeline = cp.Pipeline(
-            self, 'rtb-pipeline',
-            pipeline_name='RTBPipeline',
-            stages=[
-                cp.StageProps(stage_name="Source", actions=[source_action]),
-                cp.StageProps(
-                    stage_name="Build",
-                    actions=[
-                        cpa.CodeBuildAction(
-                            action_name="Build",
-                            # Configure your project here
-                            project=cb_project,
-                            input=source_artifact,
-                            role=rtb_pipeline_role,
-                        )
-                    ],
-                ),
-            ],
-            role=rtb_pipeline_role,
-        )
+        
+        cb.Project.start_build(self, id="RTBBuild", project=cb_project)
 
         # https://stackoverflow.com/questions/63659802/cannot-assume-role-by-code-pipeline-on-code-pipeline-action-aws-cdk
-        cfn_pipeline = pipeline.node.default_child
-        cfn_pipeline.add_deletion_override("Properties.Stages.1.Actions.0.RoleArn")
-        cfn_pipeline.add_deletion_override("Properties.Stages.2.Actions.0.RoleArn")
-        cfn_pipeline.add_deletion_override("Properties.Stages.3.Actions.0.RoleArn")
-
         cfn_build = cb_project.node.default_child
         cfn_build.add_override("Properties.Environment.Type", "ARM_CONTAINER")
     

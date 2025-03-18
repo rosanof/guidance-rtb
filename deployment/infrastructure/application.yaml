@@ -725,7 +725,7 @@ Resources:
       TemplateURL: ./templates/vpc-endpoints.yaml
       Parameters:
         EksVpcId: !GetAtt [VPC, Outputs.VpcId]
-        EksRouteTableId: !GetAtt [VPC, Outputs.PublicRouteTableId]
+        EksRouteTableId: !GetAtt [VPC, Outputs.PrivateRouteTableId]
         EksVpcSubnetIds: !GetAtt [VPC, Outputs.SubnetIds]
         EksSecurityGroupId: !GetAtt [EKS, Outputs.ClusterSecurityGroupId]
       Tags:
