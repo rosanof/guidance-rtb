@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Guidance for Building a Real Time Bidder for Advertising on AWS (SO9111). This template is root stack which will deploy ECR repository, IAM Roles for EKS and application.yaml template.
-
+Description: Guidance for Building a Real Time Bidder for Advertising on AWS. This template is root stack which will deploy ECR repository, IAM Roles for EKS and application.yaml template.
+ 
 Parameters:
   Variant:
     Type: String
