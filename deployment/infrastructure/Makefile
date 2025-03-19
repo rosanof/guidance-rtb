@@ -167,6 +167,13 @@ eks@provision-autoscaler: ## Provision Cluster Autoscaler
 		-f deployment/infrastructure/deployment/autoscaler/values.yaml \
 		--set "autoDiscovery.clusterName=$(STACK_NAME)"
 
+eks@provision-aws-loadbalancer-controller: ## Provision Cluster Autoscaler
+	helm repo add --force-update eks https://aws.github.io/eks-charts
+	helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  		-n kube-system \
+  		--set clusterName=$(STACK_NAME) \
+  		--set serviceAccount.create=true 
+
 eks@provision-ebs-csi: ## Provision EBS CSI driver
 	helm repo add --force-update aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
 	helm upgrade --install \

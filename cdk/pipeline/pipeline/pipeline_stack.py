@@ -70,7 +70,7 @@ class BuildStack(Stack):
         # Fix for issue #61
         rtb_pipeline_role = self.add_managed_policies(rtb_pipeline_role)
 
-        cb_project = cb.Project(self, "RTBPipelineProject",
+        cb_project = cb.Project(self, "rtb-build-project",
             environment={
                 "build_image": cb.LinuxBuildImage.AMAZON_LINUX_2_ARM_3,
                 "privileged": True,
@@ -82,6 +82,7 @@ class BuildStack(Stack):
             },
             source=cb_source,
             role=rtb_pipeline_role,
+            project_name="rtb-build-project"
         )
         
         # https://stackoverflow.com/questions/63659802/cannot-assume-role-by-code-pipeline-on-code-pipeline-action-aws-cdk

@@ -68,35 +68,21 @@ Increase the following service limits via Service Quotas section in AWS Console.
 ## Deployment
 
 1. Clone this repo to your local machine.
-2. Open the terminal on your local machine and configure your AWS credentials profile (Secret ID and Token), region and output using the following command:
-    ```
-    aws configure --profile rtb
-    ```
-3. Run the following command to setup to connection from AWS CodeBuild on your AWS account to the GitHub repo:
-    ```
-    aws codebuild import-source-credentials --server-type GITHUB --auth-type PERSONAL_ACCESS_TOKEN --token <token_value> --profile rtb
-    ```
-    You should receive a response similar to the following:
-    ```
-    {
-        "arn": "arn:aws:codebuild:<region>:<account-number>:token/github"
-    }
-    ```
 4. Navigate to `aws-real-time-bidder/cdk/pipeline` in your terminal or IDE and copy `cdk.context.json.example` file to `cdk.context.json`:
     ```
     cd cdk/pipeline
     cp cdk/pipeline/cdk.context.json.example cdk/pipeline/cdk.context.json
     ```
 
-5.  Update the `GITHUB_TOKEN_SECRET_ID`,`ROOT_STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and variables on the `cdk.context.json`:
+5. Update the `ROOT_STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and variables on the `cdk.context.json`. **Important:** make sure ROOT_STACK_NAME is unique as it creates a bucket with that name.
     ```
     {
         "dev": {
-            "REPO_BRANCH":"main",
-            "GITHUB_TOKEN_SECRET_ID": "rtbkit-github-token" #-- AWS SecretManager secret name
+            "REPO_BRANCH":"feature/removing-pipeline",
+            "GITHUB_TOKEN_SECRET_ID": "github-token" #-- AWS SecretManager secret name
         },
         "shared": {
-            "ROOT_STACK_NAME": "aws-rtbkit",
+            "ROOT_STACK_NAME": "rtbkit-<!!!my-unique-identifier-such-as-github-handle>",
             "STACK_VARIANT": "DynamoDB", #-- [DynamoDB|Aerospike|DynambDBBasic]
             "REPO_OWNER":"", #-- Owner of the fork repo
             "REPO_NAME":"" #-- Name of the fork repo
@@ -126,14 +112,22 @@ Increase the following service limits via Service Quotas section in AWS Console.
 
 10. On successful deployment you will see as following
     ```
-    ✅ RTBPipelineStack
+    ✅ RTBBuildStack
     ```
 
-11. After the CDK deployment is complete, a CodePipeline will start and deploy the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. This will take approximately thirty minutes. Once successful you will see:
+11. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy both infrastructure and the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. 
+
+12. Kick off the CodeBuild build by running the following command:
+
+```sh
+cd ../.. # return to the project root
+aws codebuild start-build --project-name "rtb-build-project"
+```
+This will take approximately twenty minutes. Once successful you will see:
 
     ![Build Success](./images/buildsuccess.png)
 
-12. Open AWS console and navigate to EKS service. Locate the cluster deployed by the stack. Navigate to Add-ons tab and install the Amazon EBS CSI Driver add on:
+12. (Optional for Aerospike variant) Open AWS console and navigate to EKS service. Locate the cluster deployed by the stack. Navigate to Add-ons tab and install the Amazon EBS CSI Driver add on:
     > **IMPORTANT**: Select `Optional configuration schema` and click select `Override` for the `Conflict resolution method` 
     
     ![EKS Add on](./images/eks-addon.png)
@@ -150,46 +144,18 @@ Increase the following service limits via Service Quotas section in AWS Console.
     >NOTE: Ensure you specify the correct `--profile` and `--region` in the commands below
 
     ```
-    export AWS_ACCOUNT=<Account Number>
-
-    export AWS_PROFILE=<Aws Profile Name>
-
-    export AWS_REGION=<AWS Region>
-
-    export ROOT_STACK=<ROOT Stack Name>
-
-    export APPLICATION_STACK_NAME=`aws cloudformation list-exports --query "Exports[?Name=='ApplicationStackName'].Value" --output text`
-
-    export CODEBUILD_STACK_NAME=`aws cloudformation describe-stacks --stack-name ${ROOT_STACK} --output json | jq '.Stacks[].Outputs[] | select(.OutputKey=="CodebuildStackARN") | .OutputValue' | cut -d/ -f2`
-
+    export ROOT_STACK=rtbkit-shapirov1-iad # Replace with YOUR <ROOT Stack Name>
+    echo "ROOT_STACK: " $ROOT_STACK
     export EKS_WORKER_ROLE_ARN=`aws cloudformation list-exports --query "Exports[?Name=='EKSWorkerRoleARN'].Value" --output text`
-
+    echo "EKS_WORKER_ROLE_ARN: " $EKS_WORKER_ROLE_ARN
     export EKS_ACCESS_ROLE_ARN=`aws cloudformation list-exports --query "Exports[?Name=='EKSAccessRoleARN'].Value" --output text`
-
+    echo "EKS_ACCESS_ROLE_ARN: " $EKS_ACCESS_ROLE_ARN
     export STACK_NAME=$ROOT_STACK
     ```
-16. Now, run the following command to assume EKS_ACCESS_ROLE to connect to the EKS cluster:
-    ```
-    CREDS_JSON=`aws sts assume-role --role-arn $EKS_ACCESS_ROLE_ARN \
-        --role-session-name EKSRole-Session --output json`
-    ```
-    >Note: You may need to manually configure AWS CLI credentials using `aws configure` if the temporary tokens don’t work.
 
-17. Output of above command you will give you AccessKeyId, SecretAccessKey, and SessionToken. Run the following command to export them to environment variables:
-    ```
-    export AWS_ACCESS_KEY_ID=`echo $CREDS_JSON | jq '.Credentials.AccessKeyId' | tr -d '"'`
-    export AWS_SECRET_ACCESS_KEY=`echo $CREDS_JSON | jq '.Credentials.SecretAccessKey' | tr -d '"'`
-    export AWS_SESSION_TOKEN=`echo $CREDS_JSON | jq '.Credentials.SessionToken' | tr -d '"'`
-    CREDS_JSON=""
-    ```
 18. Now run the `make` command to access the EKS cluster by:
     >NOTE: This command has to be run from the root folder of the code repository:
 
-    ```
-    make eks@grant-access
-    ```
-
-19. Run the following command to connect to EKS cluster:
     ```
     make eks@use
     ```

@@ -146,6 +146,8 @@ if sh -c "echo $VARIANT | grep -q -E '^(Aerospike)$'" ; then
     make aerospike@wait
 fi
 
+make eks@provision-aws-loadbalancer-controller 
+
 if sh -c "echo $USE_DATAGEN | grep -q -E '^(yes)$'" ; then
     echo "[Setup] Populating the database with testing data..."
     make datagen@image IMAGE_PREFIX="${STACK_NAME}-"
