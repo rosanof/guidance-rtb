@@ -169,7 +169,7 @@ eks@provision-autoscaler: ## Provision Cluster Autoscaler
 
 eks@provision-aws-loadbalancer-controller: ## Provision Cluster Autoscaler
 	helm repo add --force-update eks https://aws.github.io/eks-charts
-	helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+	helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
   		-n kube-system \
   		--set clusterName=$(STACK_NAME) \
   		--set serviceAccount.create=true 
