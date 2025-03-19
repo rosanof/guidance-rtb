@@ -235,15 +235,12 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
 * Use [update-node-group-size.sh](./update-node-group-size) to downsize the EKS cluster to zero to save compute costs while testing
 * Use [check-pod-logs.sh](./check-pod-logs.sh) to get the bidder logs for troubleshooting purposes
 
-# How to use ALB with RTB Kit
+# How to use NLB with RTB Kit
 
-1. Install ALB controller via helm refer - https://docs.aws.amazon.com/eks/latest/userguide/lbc-helm.html
-2. Attach Policy "AWSLoadBalancerControllerIAMPolicy" to the EKSWorkerRole "$cluster-name-EksWorkerRole"
-3. add tags to subnet kubernetes.io/cluster/eks-alb
-4. Make sure subnet route table is pointing to inter gateway
-5. Create ingress resource which should provision ALB (ingress file is already placed in current directory)
+1. Deploy NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-nlb.yaml`
+2. Get DNS hostname of the loadbalancer: `kubectl get services bidder-nlb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
 6. EDIT deployment/infrastructure/Makefile with below
---->  TARGET="http://\<elb url>/bidrequest"
+--->  TARGET="http://\<nlb url>/bidrequest"
 7. Remove below line from deployment/infrastructure/charts/load-generator/templates/job.yaml
     ```
     <           - --track-errors={{ .Values.trackErrors }}
@@ -269,4 +266,4 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
     <         {{- toYaml .Values.podSecurityContext | nindent 8 }}  
     <shared
     ```
-8. run the load generator and monitor ALB metrics for traffic
+8. run the load generator and monitor NLB metrics for traffic
