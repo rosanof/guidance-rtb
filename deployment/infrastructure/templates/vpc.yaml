@@ -99,7 +99,7 @@ Resources:
     Metadata:
       Comment: Subnet 01
     Properties:
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       AvailabilityZone:
         Fn::Select:
           - '0'
@@ -112,7 +112,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Subnet01'
-        - Key: kubernetes.io/role/elb
+        - Key: kubernetes.io/role/internal-elb
           Value: '1'
         - Key: !Sub 'kubernetes.io/cluster/${EksClusterName}'
           Value: 'shared'
@@ -122,7 +122,7 @@ Resources:
     Metadata:
       Comment: Subnet 02
     Properties:
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       AvailabilityZone:
         Fn::Select:
           - '1'
@@ -135,7 +135,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Subnet02'
-        - Key: kubernetes.io/role/elb
+        - Key: kubernetes.io/role/internal-elb
           Value: '1'
         - Key: !Sub 'kubernetes.io/cluster/${EksClusterName}'
           Value: 'shared'
@@ -146,7 +146,7 @@ Resources:
     Metadata:
       Comment: Subnet 03
     Properties:
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       AvailabilityZone:
         Fn::Select:
           - '2'
@@ -159,7 +159,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Subnet03'
-        - Key: kubernetes.io/role/elb
+        - Key: kubernetes.io/role/internal-elb
           Value: '1'
         - Key: !Sub 'kubernetes.io/cluster/${EksClusterName}'
           Value: 'shared'
@@ -190,18 +190,18 @@ Resources:
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
-    DependsOn: [Subnet01, Subnet02, Subnet03, Subnet04]
+    DependsOn: Subnet04
 
   VPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
-    DependsOn:  [Subnet01, Subnet02, Subnet03, Subnet04]
+    DependsOn: Subnet04
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
-    DependsOn:  [Subnet01, Subnet02, Subnet03, Subnet04]
+    DependsOn: Subnet04
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -218,25 +218,51 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn: NatPublicIP
+    Properties: 
+      SubnetId: !Ref Subnet04
+      AllocationId: !GetAtt NatPublicIP.AllocationId
+
+  NatPublicIP:
+    Type: AWS::EC2::EIP
+    DependsOn: VPC
+    Properties:
+      Domain: vpc
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    DependsOn: [Subnet01, Subnet02, Subnet03]
+    Properties:
+      VpcId: !Ref VPC
+
+  PrivateRoute:
+    DependsOn: NatGateway
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
   Subnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref Subnet01
-      RouteTableId: !Ref PublicRouteTable
+      RouteTableId: !Ref PrivateRouteTable
 
   Subnet02RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref Subnet02
-      RouteTableId: !Ref PublicRouteTable
+      RouteTableId: !Ref PrivateRouteTable
 
   Subnet03RouteTableAssociation:
     Condition: HasMoreThan2Azs
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref Subnet03
-      RouteTableId: !Ref PublicRouteTable
+      RouteTableId: !Ref PrivateRouteTable
 
   Subnet04RouteTableAssociation:
     Condition: HasMoreThan2Azs
@@ -355,3 +381,7 @@ Outputs:
   PublicRouteTableId:
     Description: Route table Id
     Value: !Ref PublicRouteTable
+  
+  PrivateRouteTableId:
+    Description: Route table Id
+    Value: !Ref PrivateRouteTable

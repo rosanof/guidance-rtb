@@ -1,5 +1,7 @@
 include config.mk
 
+.CONTEXT_VARS := AWS_ACCOUNT AWS_REGION STACK_NAME REPO_BRANCH REPO_OWNER TARGET
+$(foreach v, $(.CONTEXT_VARS), $(info $(v) = $($(v))))
 .PHONY: help precommit
 
 help: ## Help for all commands

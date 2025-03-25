@@ -55,6 +55,7 @@ ifeq ("$(wildcard deployment/infrastructure/ci/$(PROJECT_NAME)-stack\.yaml)","")
 	PROJECT_NAME_IS_VALID=$(error PROJECT_NAME is invalid, look at the *-stack.yaml files in deployment/infrastructure/ci)
 endif
 
+
 # Validate the parameters required by ci@* targets
 _validate@ci:
 	$(PROJECT_NAME_IS_VALID)
@@ -167,6 +168,13 @@ eks@provision-autoscaler: ## Provision Cluster Autoscaler
 		-f deployment/infrastructure/deployment/autoscaler/values.yaml \
 		--set "autoDiscovery.clusterName=$(STACK_NAME)"
 
+eks@provision-aws-loadbalancer-controller: ## Provision Cluster Autoscaler
+	helm repo add --force-update eks https://aws.github.io/eks-charts
+	helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  		-n kube-system \
+  		--set clusterName=$(STACK_NAME) \
+  		--set serviceAccount.create=true 
+
 eks@provision-ebs-csi: ## Provision EBS CSI driver
 	helm repo add --force-update aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
 	helm upgrade --install \
@@ -214,9 +222,12 @@ eks@cleanup: ## Remove application from EKS
 	_=$(helm uninstall bidder 2>/dev/null)
 	_=$(helm uninstall model 2>/dev/null)
 
+publisher-eks@provision:
+	eksctl create cluster -f ./deployment/infrastructure/publisher-eks/cluster.yaml
+	kubectl apply -f deployment/infrastructure/benchmark-eks/nodepool.yaml
+
 ## All variables passed to the load generator are listed here with their defaults; remember to specify duration unit.
 benchmark@run: LOAD_GENERATOR_OVERLAY_TEMP=$(shell mktemp)
-benchmark@run: TARGET="http://bidder/bidrequest"
 benchmark@run: VALUES="$(LOAD_GENERATOR_OVERLAY_TEMP)"
 benchmark@run: IMAGE_PREFIX=$(STACK_NAME)-
 benchmark@run: ## Start benchmark
@@ -233,6 +244,7 @@ benchmark@run: ## Start benchmark
 		$(if $(SERVICE_COUNT),--set targets.dynamic.count=$(SERVICE_COUNT),) \
 		--set profilerOutput=$(PROFILER_OUTPUT) \
 		--set image.tag=$(LOAD_GENERATOR_IMAGE_VERSION) \
+		--set awsRegion=$(AWS_REGION) \
 		--set nodeSelector.pool=$(LOAD_GENERATOR_NODE_SELECTOR_POOL) \
 		--set stackName=$(STACK_NAME) \
 		--set image.repository=$(IMAGE_PREFIX)load-generator \
@@ -269,7 +281,7 @@ benchmark@cleanup-bidder: ## Cleanup pods after benchmark
 LOAD_GENERATOR_OVERLAY_TEMP:=$(shell mktemp)
 benchmark@codekit: ## Start a Codekit benchmark
 		envsubst < deployment/infrastructure/deployment/load-generator/overlay-codekit.yaml.tmpl > $(LOAD_GENERATOR_OVERLAY_TEMP) && \
-			TARGET="http://bidder/bidrequest"  $(MAKE) benchmark@run IMAGE_PREFIX=$(IMAGE_PREFIX) \
+			  $(MAKE) benchmark@run IMAGE_PREFIX=$(IMAGE_PREFIX) \
 				RATE_PER_JOB=0 NUMBER_OF_JOBS=1 NUMBER_OF_DEVICES=1000 DURATION=10m VALUES="$(LOAD_GENERATOR_OVERLAY_TEMP)"
 
 
