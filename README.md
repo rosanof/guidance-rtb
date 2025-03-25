@@ -55,7 +55,7 @@ The Real-Time Bidder Solution on AWS consists of 5 modules:
     3. Enter a name for the secret. This name is required in the cdk context file later on.
     4. Leave the rest as default and store the secret.
 
-### Service Limits
+### Service Limits (not required atm)
 
 Increase the following service limits via Service Quotas section in AWS Console.
 * DynamoDB table Read Capacity Unit (RCU) limit should be increased to 150,000 RCU's from default 40,000 RCU's. The limit is called `Table-level read throughput limit` under the `Amazon DynamoDB` service quota.
@@ -172,7 +172,7 @@ This will take approximately twenty minutes. Once successful you will see:
     make benchmark@cleanup
     ```
     
-22. Start the benchmark by initiating the load-generator along with the parameters.
+22. If you plan to run benchmarks using distributed setup, Start the benchmark by initiating the load-generator along with the parameters.
     ```
     make benchmark@run TIMEOUT=100ms NUMBER_OF_JOBS=1 RATE_PER_JOB=200 NUMBER_OF_DEVICES=10000 DURATION=500s
     ```
@@ -239,31 +239,9 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
 
 1. Deploy NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-nlb.yaml`
 2. Get DNS hostname of the loadbalancer: `kubectl get services bidder-nlb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
-6. EDIT deployment/infrastructure/Makefile with below
---->  TARGET="http://\<nlb url>/bidrequest"
-7. Remove below line from deployment/infrastructure/charts/load-generator/templates/job.yaml
-    ```
-    <           - --track-errors={{ .Values.trackErrors }}
-    <       {{- if $.Values.waitForService.enable }}
-    <       initContainers:
-    <         - name: wait-for-service
-    <           image: "{{ .Values.public_ecr_registry }}/{{ .Values.waitForService.image }}"
-    <           env:
-    <             - name: TARGETS
-    <               value: {{ include "load-generator.waitForServiceTargets" $ }}
-    <           args:
-    <             - 'sh'
-    <             - '-c'
-    <             - |
-    <               for TARGET in $TARGETS; do
-    <                 until wget --spider --no-check-certificate -T 5 $TARGET; do
-    <                   echo "Still waiting for $TARGET..."
-    <                   sleep 1;
-    <                 done;
-    <               done;
-    <       {{- end }}
-    <       securityContext:
-    <         {{- toYaml .Values.podSecurityContext | nindent 8 }}  
-    <shared
-    ```
-8. run the load generator and monitor NLB metrics for traffic
+
+# How to use the RTB guidance with Heimdall
+
+1. Run `make benchmark-eks@provision` in the publisher account. This will provision an EKS cluster with AutoMode, which has a ARM Node Pool, managed Karpenter and a bunch of addons out of the box. 
+
+
