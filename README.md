@@ -68,13 +68,13 @@ Increase the following service limits via Service Quotas section in AWS Console.
 ## Deployment
 
 1. Clone this repo to your local machine.
-4. Navigate to `aws-real-time-bidder/cdk/pipeline` in your terminal or IDE and copy `cdk.context.json.example` file to `cdk.context.json`:
+2. Navigate to `aws-real-time-bidder/cdk/pipeline` in your terminal or IDE and copy `cdk.context.json.example` file to `cdk.context.json`:
     ```
     cd cdk/pipeline
     cp cdk/pipeline/cdk.context.json.example cdk/pipeline/cdk.context.json
     ```
 
-5. Configure your settings by creating a `.env` file in the root (use `envtemplate` as templte). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. 
+3. Configure your settings by creating a `.env` file in the root (use `envtemplate` as templte). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. 
 **Important:** make sure STACK_NAME is unique as it creates a bucket with that name.
     ```
     cp envtemplate .env
@@ -90,35 +90,34 @@ Increase the following service limits via Service Quotas section in AWS Console.
     TARGET_HEIMDALL="https://<your rtb app>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
     TARGET_PUBLIC_NLB="http://<your-nlb-dns>.amazonaws.com/bidrequest"
     TARGET=$(TARGET_HEIMDALL) # or set to $(TARGET_LOCAL)
-
     ```
-6.  Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
+4.  Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
     ```
     python3 --version
     ```
-7.  Set up CDK (installs the requirements and boto3 libraries and bootstraps):
+5.  Set up CDK (installs the requirements and boto3 libraries and bootstraps):
     ```
     make cdk@setup
     # validate the settings
     make cdk@list
     ```
-8. Deploy the CDK stack:
+6. Deploy the CDK stack:
     ```
     make cdk@deploy
     ```
-9. CDK will deploy the resources as shown below:
+7. CDK will deploy the resources as shown below:
 
     ![CDK Deployment](./images/CDKDeployment-2.png)
     ![CDK Deployment](./images/CDKDeployment.png)
 
-10. On successful deployment you will see as following
+8. On successful deployment you will see as following
     ```
     ✅ RTBBuildStack
     ```
 
-11. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy both infrastructure and the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. 
+9. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy both infrastructure and the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. 
 
-12. Kick off the CodeBuild build by running the following command:
+10. Kick off the CodeBuild build by running the following command:
 
 ```sh
 cd ../.. # return to the project root
@@ -128,38 +127,38 @@ This will take approximately twenty minutes. Once successful you will see:
 
     ![Build Success](./images/buildsuccess.png)
 
-12. (Optional for Aerospike variant) Open AWS console and navigate to EKS service. Locate the cluster deployed by the stack. Navigate to Add-ons tab and install the Amazon EBS CSI Driver add on:
+11. (Optional for Aerospike variant) Open AWS console and navigate to EKS service. Locate the cluster deployed by the stack. Navigate to Add-ons tab and install the Amazon EBS CSI Driver add on:
     > **IMPORTANT**: Select `Optional configuration schema` and click select `Override` for the `Conflict resolution method` 
     
     ![EKS Add on](./images/eks-addon.png)
 
-13. Once the deployment is completed go to the CloudFormation console and navigate to root stack (this will be the stack with name that you have provided in cdk.json file in step 4). Go to Outputs tab and copy `ApplicationStackName`, `ApplicationStackARN`, `EKSAccessRoleARN`, `EKSWorkerRoleARN`. We will be using them in the following steps.
+12. Once the deployment is completed go to the CloudFormation console and navigate to root stack (this will be the stack with name that you have provided in cdk.json file in step 4). Go to Outputs tab and copy `ApplicationStackName`, `ApplicationStackARN`, `EKSAccessRoleARN`, `EKSWorkerRoleARN`. We will be using them in the following steps.
 
-14. Ensure the pre-requisites (`Helm`, `Kubectl` and `jq`) are installed on the local/client machine as per the pre-requisites section above.
+13. Ensure the pre-requisites (`Helm`, `Kubectl` and `jq`) are installed on the local/client machine as per the pre-requisites section above.
     > Tip: The pre-requisites can be installed using the shell script [client-setup.sh](./client-setup.sh). Navigate to the root directory and change the script permissions `chmod 700 client-setup.sh` before running the script.
 
     >NOTE: Commands for steps 15 - 22 are included in a shell script [run-benchmark.sh](./run-benchmark.sh). Navigate to the directory and change the script permissions `chmod 700 client-setup.sh` if required before running the script.
 
-15. Now run the `make` command to access the EKS cluster by:
+14. Now run the `make` command to access the EKS cluster by:
     >NOTE: This command has to be run from the root folder of the code repository:
 
     ```
     make eks@use
     ```
 
-16. Run the following command to list the pods in cluster. You should see the pods as shown in the screenshot below.
+15. Run the following command to list the pods in cluster. You should see the pods as shown in the screenshot below.
     ```
     kubectl get pods
     ```
 
     ![Get Pods](./images/getpods.png)
 
-17. The below command will clean up the existing load generator container that was deployed during the initial deployment. You need to run this command every time you want to run a new benchmark. Use the script [run-benchmark.sh](./run-benchmark.sh) that automates 21-22.
+16. The below command will clean up the existing load generator container that was deployed during the initial deployment. You need to run this command every time you want to run a new benchmark. Use the script [run-benchmark.sh](./run-benchmark.sh) that automates 21-22.
     ```
     make benchmark@cleanup
     ```
     
-18. If you plan to run benchmarks using distributed setup proceed to section "How to use the RTB guidance with Heimdall". Start the benchmark by initiating the load-generator along with the parameters.
+17. If you plan to run benchmarks using distributed setup proceed to section "How to use the RTB guidance with Heimdall". Start the benchmark by initiating the load-generator along with the parameters.
     ```
     make benchmark@run TIMEOUT=100ms NUMBER_OF_JOBS=1 RATE_PER_JOB=200 NUMBER_OF_DEVICES=10000 DURATION=500s
     ```
@@ -174,12 +173,12 @@ This will take approximately twenty minutes. Once successful you will see:
     ENABLE_PROFILER=1    # used to start profiling session, leave unset to disable
     ```
 
-23. Once the load-generator is started you can run the following port-forward command to connect to Grafana Dashboard.
+18. Once the load-generator is started you can run the following port-forward command to connect to Grafana Dashboard.
     ```
     kubectl port-forward svc/prom-grafana 8080:80
     ```
 
-24. On your local/client instance open the URL [localhost:8080](http://localhost:8080) access Grafana Dashboard. 
+19. On your local/client instance open the URL [localhost:8080](http://localhost:8080) access Grafana Dashboard. 
 Use the following credentials to login (Turn off enhanced tracking if you are using Firefox)
 
     ```
@@ -189,15 +188,15 @@ Use the following credentials to login (Turn off enhanced tracking if you are us
 
     ![Grafana login](./images/aws-rtb-grafana-login.png)
 
-25. Once you login, click on the dashboard button on the left hamburger menu and select manage as shown in the figure below.
+20. Once you login, click on the dashboard button on the left hamburger menu and select manage as shown in the figure below.
 
     ![Dashboards](./images/aws-rtb-grafana-dashboards.png)
 
-26. Search and access 'bidder' dashboard from the list.
+21. Search and access 'bidder' dashboard from the list.
 
     ![Bidder](./images/aws-rtb-grafana-bidder.png)
 
-27. You will see the bid request that are being generated on the right side and latency on the left side of the dashboard as shown in the figure below.
+22. You will see the bid request that are being generated on the right side and latency on the left side of the dashboard as shown in the figure below.
 
     ![Benchmark](./images/benchmarksresults.png)
 
@@ -228,6 +227,51 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
 2. Get DNS hostname of the loadbalancer: `kubectl get services bidder-nlb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
 
 # How to use the RTB guidance with Heimdall
+
+## Responder (bidder application)
+
+Provision internal NLB for your responder app (see "How to use NLB with RTB Kit"). The NLB will be placed in the private subnets, marked with tag `kubernetes.io/role/internal-elb: 1` which is set by the infrastructure provisioning (through CDK).
+
+Run the following command to get subnets and security groups required to onboard your responder application:
+
+```
+aws elbv2 describe-load-balancers --names rtb-bidder-nlb
+```
+
+The command above assumes that the name of the NLB is `rtb-bidder-nlb`. If you modified it, please specify the name you applied. The output will contain DNS name, subnet ids and security groups that you will use for Heimdall onboarding of the responder app:
+
+```
+            "LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:<>",
+            "DNSName": "rtb-bidder-nlb-<postfix>.elb.us-east-1.amazonaws.com",
+            "LoadBalancerName": "rtb-bidder-nlb",
+            "Scheme": "internal",
+            "VpcId": "vpc-id",
+            "State": {
+                "Code": "active"
+            },
+            "Type": "network",
+            "AvailabilityZones": [
+                {
+                    "ZoneName": "us-east-1a",
+                    "SubnetId": "<subnet-1-id>",
+                    "LoadBalancerAddresses": []
+                },
+                {
+                    "ZoneName": "us-east-1c",
+                    "SubnetId": "<subnet-2-id>",
+                    "LoadBalancerAddresses": []
+                },
+                {
+                    "ZoneName": "us-east-1b",
+                    "SubnetId": "<subnet-3-id>",
+                    "LoadBalancerAddresses": []
+                }
+            ],
+            "SecurityGroups": [
+                "sg-003c8e171aa159548",
+                "sg-0a92e9c67ae598adb"
+            ],
+```
 
 ## Provision publisher infrastructure. 
 
@@ -265,3 +309,31 @@ Run `create-requester-rtb-app` (using onboarding guide).
 TARGET_HEIMDALL="https://<rtb-app-id>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
 TARGET=$(TARGET_HEIMDALL)
 ```
+
+6. Make sure that the current `kubectl config current-context` points to the publisher-eks cluster. (See step 3). Kick off the load test by running one of the benchmark targets.
+
+```
+# run a small batch load test
+make benchmark@codekit
+```
+
+See step 17 for other ways to run benchmark. 
+
+Note: in this setup benchmarks are running in distributed mode on a remote cluster accessing the responder app using Heimdall provided network and broker. 
+
+7. If you performed all of these steps on the same machine then you have more than a single context in your kubernetes config. Here are some commands that will help you navigate in between the contexts. 
+
+See all available contexts. You should observe the cluster with the `STACK_NAME` that you provided, which corresponds to your responder app, as well as the `publisher-eks` cluster. 
+```
+kubectl config get-contexts
+```
+
+To switch context to the target cluster, copy its name (e.g. `arn:aws:eks:us-east-1:<AWS_ACCOUNT>:cluster/<STACK_NAME>`) and use the following:
+
+```
+kubectl config use-context  arn:aws:eks:us-east-1:<AWS_ACCOUNT>:cluster/<STACK_NAME>
+```
+
+Note: for cross account setup you need to authenticate to the target account before you can access the cluster. this can be achieved by changing the profile, authenticating using SSO, pasting session scope credentials as env vairables, etc. 
+
+
