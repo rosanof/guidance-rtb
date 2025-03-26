@@ -19,32 +19,29 @@ class BuildStack(Stack):
         env_context = self.node.try_get_context(stage)
         shared_context = self.node.try_get_context('shared')
         
-        if not shared_context["REPO_OWNER"]:
-            repo_owner = "aws-solutions-library-samples"
-        else:
-            repo_owner = shared_context["REPO_OWNER"]
+        repo_owner = self.get_context_value("REPO_OWNER", shared_context, "aws-solutions-library-samples")
+        repo_name = self.get_context_value("REPO_NAME", shared_context, "guidance-for-building-a-real-time-bidder-for-advertising-on-aws")
+        root_stack_name = self.get_context_value("ROOT_STACK_NAME", shared_context, None)
 
-        if not shared_context["REPO_NAME"]:
-            repo_name = "guidance-for-building-a-real-time-bidder-for-advertising-on-aws"
-        else:
-            repo_name = shared_context["REPO_NAME"]
-
-        if not shared_context["ROOT_STACK_NAME"]:
-            root_stack_name = "aws-rtbkit"
+        if not root_stack_name:
+            raise ValueError("ROOT_STACK_NAME is required in the shared context. You can set it with OS Variable ROOT_STACK_NAME")
         else:
             # fix for issue #59 - Bucket name that prefixes stack name needs to be lowercase
             # and cannot have underscores
-            root_stack_name = shared_context["ROOT_STACK_NAME"].lower().replace("_", "-")
+            root_stack_name = root_stack_name.lower().replace("_", "-")
         
-        if not shared_context["STACK_VARIANT"]:
-            stack_variant = "DynamoDBBasic"
-        else:
-            stack_variant = shared_context["STACK_VARIANT"]
+        stack_variant =  self.get_context_value("STACK_VARIANT", shared_context, "DynamoDBBasic")
+        repo_branch = self.get_context_value("REPO_BRANCH", env_context, "main")    
         
-        if not env_context["REPO_BRANCH"]:
-            repo_branch = "main"
-        else:
-            repo_branch = env_context["REPO_BRANCH"]
+        # print out all variables above
+        print("repo_owner (OS REPO_OWNER): ", repo_owner)
+        print("repo_name ($REPO_NAME): ", repo_name)
+        print("root_stack_name ($STACK_NAME): ", root_stack_name)
+        print("stack_variant: ", stack_variant)
+        print("repo_branch: ", repo_branch)
+        print("acc: ", acc)
+        print("reg: ", reg)
+        
         
 
         # fix for issue #79 code commit deprecation
@@ -112,3 +109,27 @@ class BuildStack(Stack):
             iamrole.add_managed_policy(mananged_policy)
 
         return iamrole
+    
+    def get_context_value(self, key: str, context: any, default_value: any) -> any:
+        """
+        Gets a value from environment variables first, then CDK context, or returns default value.
+        
+        Args:
+            key: The key to look up
+            default_value: The default value to return if key is not found
+        
+        Returns:
+            The value from environment, context, or default value
+        """
+
+        env_value = os.environ.get(key)
+        if env_value is not None:
+            return env_value
+            
+        # Then check CDK context if context is not none
+        if context is not None and key in context:
+            return context[key]
+            
+        # Return default if neither found
+        return default_value
+    

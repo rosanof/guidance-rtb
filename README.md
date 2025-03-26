@@ -74,36 +74,37 @@ Increase the following service limits via Service Quotas section in AWS Console.
     cp cdk/pipeline/cdk.context.json.example cdk/pipeline/cdk.context.json
     ```
 
-5. Update the `ROOT_STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and variables on the `cdk.context.json`. **Important:** make sure ROOT_STACK_NAME is unique as it creates a bucket with that name.
+5. Configure your settings by creating a `.env` file in the root (use `envtemplate` as templte). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. 
+**Important:** make sure STACK_NAME is unique as it creates a bucket with that name.
     ```
-    {
-        "dev": {
-            "REPO_BRANCH":"feature/removing-pipeline",
-            "GITHUB_TOKEN_SECRET_ID": "github-token" #-- AWS SecretManager secret name
-        },
-        "shared": {
-            "ROOT_STACK_NAME": "rtbkit-<!!!my-unique-identifier-such-as-github-handle>",
-            "STACK_VARIANT": "DynamoDB", #-- [DynamoDB|Aerospike|DynambDBBasic]
-            "REPO_OWNER":"", #-- Owner of the fork repo
-            "REPO_NAME":"" #-- Name of the fork repo
-        }
-    }
+    cp envtemplate .env
+    cat .env
+
+    STACK_NAME=rtbkit-<your-user-alias>-<region>
+    AWS_REGION=us-east-1
+    STACK_VARIANT=DynamoDbBasic
+    REPO_OWNER=<your GitHub handle>
+    REPO_NAME=guidance-for-building-a-real-time-bidder-for-advertising-on-aws
+    REPO_BRANCH=main
+    TARGET_LOCAL="http://bidder/bidrequest"
+    TARGET_HEIMDALL="https://<your rtb app>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
+    TARGET_PUBLIC_NLB="http://<your-nlb-dns>.amazonaws.com/bidrequest"
+    TARGET=$(TARGET_HEIMDALL) # or set to $(TARGET_LOCAL)
+
     ```
 6.  Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
     ```
-    sudo apt-get install python3
     python3 --version
     ```
-7. Create a python3 virtual environment and install the requirements and boto3 libraries:
+7.  Set up CDK (installs the requirements and boto3 libraries and bootstraps):
     ```
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip3 install -r requirements.txt
+    make cdk@setup
+    # validate the settings
+    make cdk@list
     ```
 8. Deploy the CDK stack:
     ```
-    cdk bootstrap --profile rtb
-    cdk deploy --profile rtb
+    make cdk@deploy
     ```
 9. CDK will deploy the resources as shown below:
 
@@ -139,40 +140,26 @@ This will take approximately twenty minutes. Once successful you will see:
 
     >NOTE: Commands for steps 15 - 22 are included in a shell script [run-benchmark.sh](./run-benchmark.sh). Navigate to the directory and change the script permissions `chmod 700 client-setup.sh` if required before running the script.
 
-15. Open a command terminal in your local/client machine, navigate to the repository folder and run the following commands. The following commands will set the variables in your terminal which are used to connect to EKS cluster and run benchmarks:
-
-    >NOTE: Ensure you specify the correct `--profile` and `--region` in the commands below
-
-    ```
-    export ROOT_STACK=rtbkit-shapirov1-iad # Replace with YOUR <ROOT Stack Name>
-    echo "ROOT_STACK: " $ROOT_STACK
-    export EKS_WORKER_ROLE_ARN=`aws cloudformation list-exports --query "Exports[?Name=='EKSWorkerRoleARN'].Value" --output text`
-    echo "EKS_WORKER_ROLE_ARN: " $EKS_WORKER_ROLE_ARN
-    export EKS_ACCESS_ROLE_ARN=`aws cloudformation list-exports --query "Exports[?Name=='EKSAccessRoleARN'].Value" --output text`
-    echo "EKS_ACCESS_ROLE_ARN: " $EKS_ACCESS_ROLE_ARN
-    export STACK_NAME=$ROOT_STACK
-    ```
-
-18. Now run the `make` command to access the EKS cluster by:
+15. Now run the `make` command to access the EKS cluster by:
     >NOTE: This command has to be run from the root folder of the code repository:
 
     ```
     make eks@use
     ```
 
-20. Run the following command to list the pods in cluster. You should see the pods as shown in the screenshot below.
+16. Run the following command to list the pods in cluster. You should see the pods as shown in the screenshot below.
     ```
     kubectl get pods
     ```
 
     ![Get Pods](./images/getpods.png)
 
-21. The below command will clean up the existing load generator container that was deployed during the initial deployment. You need to run this command every time you want to run a new benchmark. Use the script [run-benchmark.sh](./run-benchmark.sh) that automates 21-22.
+17. The below command will clean up the existing load generator container that was deployed during the initial deployment. You need to run this command every time you want to run a new benchmark. Use the script [run-benchmark.sh](./run-benchmark.sh) that automates 21-22.
     ```
     make benchmark@cleanup
     ```
     
-22. If you plan to run benchmarks using distributed setup, Start the benchmark by initiating the load-generator along with the parameters.
+18. If you plan to run benchmarks using distributed setup proceed to section "How to use the RTB guidance with Heimdall". Start the benchmark by initiating the load-generator along with the parameters.
     ```
     make benchmark@run TIMEOUT=100ms NUMBER_OF_JOBS=1 RATE_PER_JOB=200 NUMBER_OF_DEVICES=10000 DURATION=500s
     ```
@@ -242,6 +229,39 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
 
 # How to use the RTB guidance with Heimdall
 
-1. Run `make benchmark-eks@provision` in the publisher account. This will provision an EKS cluster with AutoMode, which has a ARM Node Pool, managed Karpenter and a bunch of addons out of the box. 
+## Provision publisher infrastructure. 
 
+Your publisher infrastructure requires the following:
 
+1. AWS Account (generally, it is a separate account from the bidder application)
+2. VPC 
+3. EKS Cluster to deploy the publisher app (emulated by the load generator in this solution)
+
+We have prepared commands for you to accomplish steps #2 and #3. 
+
+1. Start a new terminal session and navigate to the target account by setting AWS credentials and context to use it (e.g. switching AWS CLI profile). Starting a new session is required in order avoid context pollution from your previous runs. 
+
+2. Run `make publisher-eks@provision` in the publisher account. This will provision a new VPC with a well-architected EKS cluster in Auto Mode. The cluster has an ARM Node Pool, managed Karpenter and a number of add-ons out of the box.
+
+3. The above command will automatically update your .kube/config. You can validate access by running:
+```
+kubectl config current-context # should produce something like <username>@publisher-eks.us-east-1.eksctl.io
+kubectl get nodepools
+```
+
+You will see nodepools `system` and `generic-workloads`. The latter is a pool based on Graviton instances to run load testing. 
+
+4. Onboard the private subnets of the created VPC as part of your publisher application in Heimdall. 
+
+```
+aws eks describe-cluster --name publisher-eks --query "cluster.resourcesVpcConfig.subnetIds" --output text
+```
+
+Run `create-requester-rtb-app` (using onboarding guide).
+
+5. In your `.env` file set variable `TARGET_HEIMDALL` to the link that you established with the responder application. Then set the `TARGET` to point to the `TARGET_HEIMDALL`.
+
+```
+TARGET_HEIMDALL="https://<rtb-app-id>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
+TARGET=$(TARGET_HEIMDALL)
+```
