@@ -1,7 +1,7 @@
 # copy this to .env file and set the values
 STACK_NAME=# set this to a  unique name such as rtbkit-<your-alias>-<region>
 AWS_REGION=us-east-1
-STACK_VARIANT=DynamoDbBasic
+STACK_VARIANT=DynamoDBBasic
 REPO_OWNER=# set to your github handle or keep aws-solutions-library-samples
 REPO_NAME=# set to your repo name or keep as guidance-for-building-a-real-time-bidder-for-advertising-on-aws
 REPO_BRANCH=main # or set to branch like "feature/removing-pipeline"

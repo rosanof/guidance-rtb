@@ -68,13 +68,29 @@ Increase the following service limits via Service Quotas section in AWS Console.
 ## Deployment
 
 1. Clone this repo to your local machine.
-2. Navigate to `aws-real-time-bidder/cdk/pipeline` in your terminal or IDE and copy `cdk.context.json.example` file to `cdk.context.json`:
+2. Navigate to `aws-real-time-bidder/cdk/pipeline` in your terminal or IDE and copy `cdk.context.json.example` file to `cdk.context.json` and set all the values to match the repo/owner and stack variant:
     ```
     cd cdk/pipeline
     cp cdk/pipeline/cdk.context.json.example cdk/pipeline/cdk.context.json
     ```
 
-3. Configure your settings by creating a `.env` file in the root (use `envtemplate` as templte). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. 
+    Make sure ROOT_STACK_NAME is set to a unique value (e.g. something with your alias or account) as it is used to create an S3 bucket. GitHub token can be omitted, it is not required as we will kick off builds manually:
+
+    ```json
+    {
+    "dev": {
+        "REPO_BRANCH":"main"
+    },
+    "shared": {
+        "ROOT_STACK_NAME": "aws-rtbkit-SET_IT_TO_YOUR_ALIAS_OR_ACCOUNT",
+        "STACK_VARIANT": "DynamoDBBasic",
+        "REPO_OWNER":"shapirov103",
+        "REPO_NAME":"guidance-rtb"
+    }
+}
+    ```
+
+3. Configure your settings by creating a `.env` file in the root (use `envtemplate` as templte). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. If you don't have Hiemdall target yet, set TARGET to TARGET_LOCAL
 **Important:** make sure STACK_NAME is unique as it creates a bucket with that name.
     ```
     cp envtemplate .env
@@ -153,13 +169,9 @@ This will take approximately twenty minutes. Once successful you will see:
 
     ![Get Pods](./images/getpods.png)
 
-16. The below command will clean up the existing load generator container that was deployed during the initial deployment. You need to run this command every time you want to run a new benchmark. Use the script [run-benchmark.sh](./run-benchmark.sh) that automates 21-22.
+17. If you plan to run benchmarks using distributed setup proceed to section "How to use the RTB guidance with Heimdall". If you would like to run a load test internally (inside the Kubernetes cluster) you can start local benchmarks by initiating the load-generator along with the parameters.
     ```
     make benchmark@cleanup
-    ```
-    
-17. If you plan to run benchmarks using distributed setup proceed to section "How to use the RTB guidance with Heimdall". Start the benchmark by initiating the load-generator along with the parameters.
-    ```
     make benchmark@run TIMEOUT=100ms NUMBER_OF_JOBS=1 RATE_PER_JOB=200 NUMBER_OF_DEVICES=10000 DURATION=500s
     ```
     _You can supply following parameters to load-generator and perform benchmarks_
@@ -173,7 +185,7 @@ This will take approximately twenty minutes. Once successful you will see:
     ENABLE_PROFILER=1    # used to start profiling session, leave unset to disable
     ```
 
-18. Once the load-generator is started you can run the following port-forward command to connect to Grafana Dashboard.
+18. To observe metrics and dashboards in Grafanca:
     ```
     kubectl port-forward svc/prom-grafana 8080:80
     ```
@@ -223,12 +235,19 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
 
 # How to use NLB with RTB Kit
 
-1. Deploy NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-nlb.yaml`
+## Internal NLB
+1. Deploy internal NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-nlb.yaml`
 2. Get DNS hostname of the loadbalancer: `kubectl get services bidder-nlb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
+
+## External NLB
+1. Deploy external NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-external.yaml`
+2. Get DNS hostname of the loadbalancer: `kubectl get services bidder-external -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
 
 # How to use the RTB guidance with Heimdall
 
 ## Responder (bidder application)
+
+The below steps do not reflect the EKS Endpoints approach yet, these steps will be included shortly. The current setup is showing the steps for internal NLB setup with Heimdall. 
 
 Provision internal NLB for your responder app (see "How to use NLB with RTB Kit"). The NLB will be placed in the private subnets, marked with tag `kubernetes.io/role/internal-elb: 1` which is set by the infrastructure provisioning (through CDK).
 
