@@ -2,4 +2,3 @@
 .venv
 cdk.context.json
 .vscode
-.env
