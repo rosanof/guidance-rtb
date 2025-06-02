@@ -79,7 +79,7 @@ class BuildStack(Stack):
                 "RTBKIT_ROOT_STACK_NAME": (cb.BuildEnvironmentVariable(value=root_stack_name)),
                 "RTBKIT_VARIANT": cb.BuildEnvironmentVariable(value=stack_variant),
             },
-            build_spec=build_spec,
+            build_spec=cb.BuildSpec.from_source_filename(build_spec),
             source=cb_source,
             role=rtb_pipeline_role,
             project_name="rtb-build-project"
