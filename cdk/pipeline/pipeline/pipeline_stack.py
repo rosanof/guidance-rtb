@@ -66,6 +66,8 @@ class BuildStack(Stack):
         )
         # Fix for issue #61
         rtb_pipeline_role = self.add_managed_policies(rtb_pipeline_role)
+        
+        build_spec = self.get_context_value("BUILD_SPEC", shared_context, "buildspec.yml")
 
         cb_project = cb.Project(self, "rtb-build-project",
             environment={
@@ -77,6 +79,7 @@ class BuildStack(Stack):
                 "RTBKIT_ROOT_STACK_NAME": (cb.BuildEnvironmentVariable(value=root_stack_name)),
                 "RTBKIT_VARIANT": cb.BuildEnvironmentVariable(value=stack_variant),
             },
+            build_spec=build_spec,
             source=cb_source,
             role=rtb_pipeline_role,
             project_name="rtb-build-project"
