@@ -20,7 +20,7 @@ phases:
       - chmod a+x ~/.docker/cli-plugins/docker-buildx
       - export DOCKER_BUILDKIT=1
       - echo "Starting build `date` in `pwd`"
-      - chmod +x ./build-loadgen.sh && ./build-loadgen ${AWS_ACCOUNT_ID} ${AWS_REGION} ${RTBKIT_ROOT_STACK_NAME} 
+      - chmod +x ./build-loadgen.sh && ./build-loadgen.sh ${AWS_ACCOUNT_ID} ${AWS_REGION} ${RTBKIT_ROOT_STACK_NAME} 
       - echo "Build completed `date`"
   post_build:
     commands:
