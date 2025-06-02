@@ -34,6 +34,7 @@ fi
 
 export STACK_NAME=$3
 
+make ecr@login
 make load-generator@build
     
 echo "[Setup] The bidder loadgen has been deployed."
