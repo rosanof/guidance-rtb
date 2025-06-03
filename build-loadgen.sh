@@ -35,6 +35,15 @@ fi
 export STACK_NAME=$3
 
 make ecr@login
+
+# Check if ECR repository exists, create if not
+REPO_NAME="${STACK_NAME}-load-generator"
+if ! aws ecr describe-repositories --repository-names ${REPO_NAME} --region ${AWS_REGION} >/dev/null 2>&1; then
+  echo "Creating ECR repository: ${REPO_NAME}"
+  aws ecr create-repository --repository-name ${REPO_NAME} --region ${AWS_REGION}
+fi
+
+
 make load-generator@build
     
 echo "[Setup] The bidder loadgen has been deployed."

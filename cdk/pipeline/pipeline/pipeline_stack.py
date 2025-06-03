@@ -92,7 +92,7 @@ class BuildStack(Stack):
     # fix for issue #61
     def add_managed_policies(self, iamrole: iam.Role) -> iam.Role:
         """
-        loops through the list of role arns and add it to the input role object and retuns the same back
+        loops through the list of role arns and add it to the input role object and returns the same back
         """
         managed_policy_arns={"arn:aws:iam::aws:policy/AdministratorAccess",
                     "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
