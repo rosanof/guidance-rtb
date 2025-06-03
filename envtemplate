@@ -1,5 +1,5 @@
 # copy this to .env file and set the values
-STACK_NAME=# set this to a  unique name such as rtbkit-<your-alias>-<region>
+STACK_NAME= # set this to a  unique name such as rtbkit-<your-alias>-<region>
 AWS_REGION=us-east-1
 STACK_VARIANT=DynamoDBBasic
 REPO_OWNER=shapirov103 # set to your github handle or keep aws-solutions-library-samples
