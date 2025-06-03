@@ -8,7 +8,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
   labels:
-    app: bidder-internal
+    app: bidder-external
   name: bidder-external
   namespace: default
 spec:
