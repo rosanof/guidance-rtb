@@ -112,7 +112,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Subnet01'
-        - Key: kubernetes.io/role/internal-elb
+        - Key: kubernetes.io/role/elb
           Value: '1'
         - Key: !Sub 'kubernetes.io/cluster/${EksClusterName}'
           Value: 'shared'
@@ -135,7 +135,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Subnet02'
-        - Key: kubernetes.io/role/internal-elb
+        - Key: kubernetes.io/role/elb
           Value: '1'
         - Key: !Sub 'kubernetes.io/cluster/${EksClusterName}'
           Value: 'shared'
@@ -159,7 +159,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Subnet03'
-        - Key: kubernetes.io/role/internal-elb
+        - Key: kubernetes.io/role/elb
           Value: '1'
         - Key: !Sub 'kubernetes.io/cluster/${EksClusterName}'
           Value: 'shared'
