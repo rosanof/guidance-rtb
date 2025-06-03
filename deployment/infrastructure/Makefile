@@ -224,7 +224,7 @@ eks@cleanup: ## Remove application from EKS
 
 publisher-eks@provision:
 	eksctl create cluster -f ./deployment/infrastructure/publisher-eks/cluster.yaml
-	kubectl apply -f deployment/infrastructure/benchmark-eks/nodepool.yaml
+	kubectl apply -f deployment/infrastructure/publisher-eks/nodepool.yaml
 
 ## All variables passed to the load generator are listed here with their defaults; remember to specify duration unit.
 benchmark@run: LOAD_GENERATOR_OVERLAY_TEMP=$(shell mktemp)
