@@ -65,33 +65,15 @@ Increase the following service limits via Service Quotas section in AWS Console.
 
 ![Architecture](./images/RTBCodekitArchitecture.png)
 
-## Deployment
+## Deployment of DSP Infrastructure and Application
+
+If you are looking for instructions to provision publisher (SSP) infrastructure, go to the section "Deployment of Publisher (SSP) Infrastructure and Load Generator".
+The following steps describe deployment of the infrastructure that will deploy responder application capable of accepting bid requests and responding with contrived data (generated with the datagen tool). You can run local load testing of this cluster (in-cluster load test) if needed. Along with the application, the cluster will have the observability stack based on prometheus/grafana. 
 
 1. Clone this repo to your local machine.
-2. Navigate to `aws-real-time-bidder/cdk/pipeline` in your terminal or IDE and copy `cdk.context.json.example` file to `cdk.context.json` and set all the values to match the repo/owner and stack variant:
-    ```
-    cd cdk/pipeline
-    cp cdk/pipeline/cdk.context.json.example cdk/pipeline/cdk.context.json
-    ```
 
-    Make sure ROOT_STACK_NAME is set to a unique value (e.g. something with your alias or account) as it is used to create an S3 bucket. GitHub token can be omitted, it is not required as we will kick off builds manually:
-
-    ```json
-    {
-    "dev": {
-        "REPO_BRANCH":"main"
-    },
-    "shared": {
-        "ROOT_STACK_NAME": "aws-rtbkit-SET_IT_TO_YOUR_ALIAS_OR_ACCOUNT",
-        "STACK_VARIANT": "DynamoDBBasic",
-        "REPO_OWNER":"shapirov103",
-        "REPO_NAME":"guidance-rtb"
-    }
-}
-    ```
-
-3. Configure your settings by creating a `.env` file in the root (use `envtemplate` as templte). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. If you don't have Hiemdall target yet, set TARGET to TARGET_LOCAL
-**Important:** make sure STACK_NAME is unique as it creates a bucket with that name.
+3. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. If you don't have Heimdall target yet, set TARGET to TARGET_LOCAL. Leave the BUILD_SPEC as `buildspec.yml`. 
+**Important:** make sure STACK_NAME is unique as it creates a bucket with that name. Also remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
     ```
     cp envtemplate .env
     cat .env
@@ -99,13 +81,14 @@ Increase the following service limits via Service Quotas section in AWS Console.
     STACK_NAME=rtbkit-<your-user-alias>-<region>
     AWS_REGION=us-east-1
     STACK_VARIANT=DynamoDbBasic
-    REPO_OWNER=<your GitHub handle>
+    REPO_OWNER=shapirov103
     REPO_NAME=guidance-for-building-a-real-time-bidder-for-advertising-on-aws
     REPO_BRANCH=main
+    BUILD_SPEC=buildspec.yml
     TARGET_LOCAL="http://bidder/bidrequest"
     TARGET_HEIMDALL="https://<your rtb app>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
     TARGET_PUBLIC_NLB="http://<your-nlb-dns>.amazonaws.com/bidrequest"
-    TARGET=$(TARGET_HEIMDALL) # or set to $(TARGET_LOCAL)
+    TARGET=$(TARGET_HEIMDALL)
     ```
 4.  Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
     ```
@@ -139,7 +122,9 @@ Increase the following service limits via Service Quotas section in AWS Console.
 cd ../.. # return to the project root
 aws codebuild start-build --project-name "rtb-build-project"
 ```
-This will take approximately twenty minutes. Once successful you will see:
+This will take approximately twenty minutes. You can navigate to AWS Console (UI) and find the CodeBuild project named `rtb-build-prpject` and observe the execution of the latest run through the logs. 
+
+Once successful you will see:
 
     ![Build Success](./images/buildsuccess.png)
 
@@ -235,6 +220,8 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
 
 # How to use NLB with RTB Kit
 
+The following are instructions to create either internal or external NLB for load testing. These can be used to simulate external traffic to the cluster and to compare latency between internal, external and direct connection to the cluster (e.g. through Heimdall).
+
 ## Internal NLB
 1. Deploy internal NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-nlb.yaml`
 2. Get DNS hostname of the loadbalancer: `kubectl get services bidder-nlb -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
@@ -292,7 +279,7 @@ The command above assumes that the name of the NLB is `rtb-bidder-nlb`. If you m
             ],
 ```
 
-## Provision publisher infrastructure. 
+## Deployment of Publisher (SSP) Infrastructure and Load Generator
 
 Your publisher infrastructure requires the following:
 
@@ -302,11 +289,70 @@ Your publisher infrastructure requires the following:
 
 We have prepared commands for you to accomplish steps #2 and #3. 
 
-1. Start a new terminal session and navigate to the target account by setting AWS credentials and context to use it (e.g. switching AWS CLI profile). Starting a new session is required in order avoid context pollution from your previous runs. 
+1. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. Set TARGET to the url of the DSP application to send to the traffic. 
+**Important:** Modify the BUILD_SPEC to `buildspec-loadgen.yml`. Also make sure STACK_NAME is unique. Remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
+    ```
+    cp envtemplate .env
+    cat .env
 
-2. Run `make publisher-eks@provision` in the publisher account. This will provision a new VPC with a well-architected EKS cluster in Auto Mode. The cluster has an ARM Node Pool, managed Karpenter and a number of add-ons out of the box.
+    STACK_NAME=rtbkit-<your-user-alias>-<region>
+    AWS_REGION=us-east-1
+    STACK_VARIANT=DynamoDbBasic
+    REPO_OWNER=shapirov103
+    REPO_NAME=guidance-for-building-a-real-time-bidder-for-advertising-on-aws
+    REPO_BRANCH=main
+    BUILD_SPEC=buildspec-loadgen.yml
+    TARGET_LOCAL="http://bidder/bidrequest"
+    TARGET_HEIMDALL="https://<your rtb app>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
+    TARGET_PUBLIC_NLB="http://<your-nlb-dns>.amazonaws.com/bidrequest"
+    TARGET=$(TARGET_HEIMDALL)
 
-3. The above command will automatically update your .kube/config. You can validate access by running:
+    ```
+
+2. Start a new terminal session and navigate to the target account by setting AWS credentials and context to use it (e.g. switching AWS CLI profile). Starting a new session is required in order avoid context pollution from your previous runs. 
+
+3. Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
+    ```
+    python3 --version
+    ```
+
+4. Set up CDK (installs the requirements and boto3 libraries and bootstraps):
+    ```
+    make cdk@setup
+    # validate the settings
+    make cdk@list
+    ```
+5. Deploy the CDK stack:
+    ```
+    make cdk@deploy
+    ```
+6. CDK will deploy the resources as shown below:
+
+    ![CDK Deployment](./images/CDKDeployment-2.png)
+    ![CDK Deployment](./images/CDKDeployment.png)
+
+7. On successful deployment you will see as following
+    ```
+    ✅ RTBBuildStack
+    ```
+
+8. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy both infrastructure and the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. 
+
+9. Kick off the CodeBuild build by running the following command:
+
+```sh
+cd ../.. # return to the project root
+aws codebuild start-build --project-name "rtb-build-project"
+```
+This will take approximately twenty minutes. You can navigate to AWS Console (UI) and find the CodeBuild project named `rtb-build-prpject` and observe the execution of the latest run through the logs. 
+
+Once successful you will see:
+
+    ![Build Success](./images/buildsuccess.png)
+
+10. Run `make publisher-eks@provision` in the publisher account. This will provision a new VPC with a well-architected EKS cluster in Auto Mode. The cluster has an ARM Node Pool, managed Karpenter and a number of add-ons out of the box.
+
+11. The above command will automatically update your .kube/config. You can validate access by running:
 ```
 kubectl config current-context # should produce something like <username>@publisher-eks.us-east-1.eksctl.io
 kubectl get nodepools
@@ -314,7 +360,7 @@ kubectl get nodepools
 
 You will see nodepools `system` and `generic-workloads`. The latter is a pool based on Graviton instances to run load testing. 
 
-4. Onboard the private subnets of the created VPC as part of your publisher application in Heimdall. 
+12. Onboard the private subnets of the created VPC as part of your publisher application in Heimdall. 
 
 ```
 aws eks describe-cluster --name publisher-eks --query "cluster.resourcesVpcConfig.subnetIds" --output text
@@ -322,25 +368,23 @@ aws eks describe-cluster --name publisher-eks --query "cluster.resourcesVpcConfi
 
 Run `create-requester-rtb-app` (using onboarding guide).
 
-5. In your `.env` file set variable `TARGET_HEIMDALL` to the link that you established with the responder application. Then set the `TARGET` to point to the `TARGET_HEIMDALL`.
+13. In your `.env` file set variable `TARGET_HEIMDALL` to the link that you established with the responder application. Then set the `TARGET` to point to the `TARGET_HEIMDALL`.
 
 ```
 TARGET_HEIMDALL="https://<rtb-app-id>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
 TARGET=$(TARGET_HEIMDALL)
 ```
 
-6. Make sure that the current `kubectl config current-context` points to the publisher-eks cluster. (See step 3). Kick off the load test by running one of the benchmark targets.
+14. Make sure that the current `kubectl config current-context` points to the publisher-eks cluster. (See step 3). Kick off the load test by running one of the benchmark targets.
 
 ```
 # run a small batch load test
 make benchmark@codekit
 ```
 
-See step 17 for other ways to run benchmark. 
-
 Note: in this setup benchmarks are running in distributed mode on a remote cluster accessing the responder app using Heimdall provided network and broker. 
 
-7. If you performed all of these steps on the same machine then you have more than a single context in your kubernetes config. Here are some commands that will help you navigate in between the contexts. 
+15. If you performed all of these steps on the same machine then you have more than a single context in your kubernetes config. Here are some commands that will help you navigate in between the contexts. 
 
 See all available contexts. You should observe the cluster with the `STACK_NAME` that you provided, which corresponds to your responder app, as well as the `publisher-eks` cluster. 
 ```

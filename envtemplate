@@ -7,4 +7,4 @@ REPO_NAME=guidance-rtb # set to your repo name or keep as guidance-for-building-
 REPO_BRANCH=main # or set to branch like "feature/removing-pipeline"
 TARGET_LOCAL="http://bidder/bidrequest"
 TARGET= # set to your destination such as Heimdall link endpoint, public NLB or set $TARGET_LOCAL
-BUILD_SPEC=buildspec.yml 
+BUILD_SPEC=buildspec.yml
