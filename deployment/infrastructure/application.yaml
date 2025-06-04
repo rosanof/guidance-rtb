@@ -789,15 +789,6 @@ Resources:
       Tags:
         - Key: stackName
           Value: !Ref AWS::StackName
-  
-  # CnineInstance:
-  #   Type: AWS::CloudFormation::Stack
-  #   DependsOn: VPC
-  #   Properties:
-  #     TemplateURL: ./templates/cloud9.yaml
-  #     Parameters:
-  #       RootStackName: !Ref RootStackName
-  #       Subnet04: !GetAtt [VPC, Outputs.SubnetId]
 
 Outputs:
   StackName:
