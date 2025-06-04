@@ -271,7 +271,7 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  NatPublicIP:
+  NatPublicIPRtb:
     Type: AWS::EC2::EIP
     DependsOn: VPCGatewayAttachment
     Properties:
@@ -280,12 +280,12 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}-NatGatewayEIP'
 
-  NatGateway:
+  NatGatewayRtb:
     Type: AWS::EC2::NatGateway
-    DependsOn: [VPCGatewayAttachment, NatPublicIP]
+    DependsOn: [VPCGatewayAttachment, NatPublicIPRtb]
     Properties: 
       SubnetId: !Ref PublicSubnet2
-      AllocationId: !GetAtt NatPublicIP.AllocationId
+      AllocationId: !GetAtt NatPublicIPRtb.AllocationId
 
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
@@ -294,12 +294,12 @@ Resources:
       VpcId: !Ref VPC
 
   PrivateRoute:
-    DependsOn: NatGateway
+    DependsOn: NatGatewayRtb
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
+      NatGatewayId: !Ref NatGatewayRtb
 
   Subnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
