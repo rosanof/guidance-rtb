@@ -286,6 +286,7 @@ Your publisher infrastructure requires the following:
 1. AWS Account (generally, it is a separate account from the bidder application)
 2. VPC 
 3. EKS Cluster to deploy the publisher app (emulated by the load generator in this solution)
+4. `eksctl` tool installed locally (see https://eksctl.io/installation/ for details). 
 
 We have prepared commands for you to accomplish steps #2 and #3. 
 
