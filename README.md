@@ -72,8 +72,8 @@ The following steps describe deployment of the infrastructure that will deploy r
 
 1. Clone this repo to your local machine.
 
-3. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. If you don't have Heimdall target yet, set TARGET to TARGET_LOCAL. Leave the BUILD_SPEC as `buildspec.yml`. 
-**Important:** make sure STACK_NAME is unique as it creates a bucket with that name. Also remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
+2. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. If you don't have Heimdall target yet, set TARGET to TARGET_LOCAL. Leave the BUILD_SPEC as `buildspec.yml`. 
+**Important:** STACK_NAME MUST be lowercase and unique as it creates ECR repo and an S3  bucket with that name. Also remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
     ```
     cp envtemplate .env
     cat .env
@@ -90,33 +90,33 @@ The following steps describe deployment of the infrastructure that will deploy r
     TARGET_PUBLIC_NLB="http://<your-nlb-dns>.amazonaws.com/bidrequest"
     TARGET=$(TARGET_HEIMDALL)
     ```
-4.  Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
+3.  Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
     ```
     python3 --version
     ```
-5.  Set up CDK (installs the requirements and boto3 libraries and bootstraps):
+4.  Set up CDK (installs the requirements and boto3 libraries and bootstraps):
     ```
     make cdk@setup
     # validate the settings
     make cdk@list
     ```
-6. Deploy the CDK stack:
+5. Deploy the CDK stack:
     ```
     make cdk@deploy
     ```
-7. CDK will deploy the resources as shown below:
+6. CDK will deploy the resources as shown below:
 
     ![CDK Deployment](./images/CDKDeployment-2.png)
     ![CDK Deployment](./images/CDKDeployment.png)
 
-8. On successful deployment you will see as following
+7. On successful deployment you will see as following
     ```
     ✅ RTBBuildStack
     ```
 
-9. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy both infrastructure and the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. 
+8. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy both infrastructure and the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. 
 
-10. Kick off the CodeBuild build by running the following command:
+9. Kick off the CodeBuild build by running the following command:
 
 ```sh
 cd ../.. # return to the project root
@@ -293,7 +293,7 @@ We have prepared commands for you to accomplish steps #2 and #3.
 If you used this repo to provision DSP infrastructure, it is recommended to clone this repo in a separate folder, so that you can keep your own set of .env settings and avoid conflicts. When provisioning in the same account, use a different stack name for the DSP. 
 
 1. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. Set TARGET to the url of the DSP application to send to the traffic. 
-**Important:** Modify the BUILD_SPEC to `buildspec-loadgen.yml`. Also make sure STACK_NAME is unique. Remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
+**Important:** Make sure the BUILD_SPEC is to `buildspec-loadgen.yml`. Also make sure STACK_NAME is unique and lowercase. Remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
     ```
     cp envtemplate .env
     cat .env
