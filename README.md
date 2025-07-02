@@ -290,6 +290,8 @@ Your publisher infrastructure requires the following:
 
 We have prepared commands for you to accomplish steps #2 and #3. 
 
+If you used this repo to provision DSP infrastructure, it is recommended to clone this repo in a separate folder, so that you can keep your own set of .env settings and avoid conflicts. When provisioning in the same account, use a different stack name for the DSP. 
+
 1. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. Set TARGET to the url of the DSP application to send to the traffic. 
 **Important:** Modify the BUILD_SPEC to `buildspec-loadgen.yml`. Also make sure STACK_NAME is unique. Remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
     ```
@@ -309,6 +311,8 @@ We have prepared commands for you to accomplish steps #2 and #3.
     TARGET=$(TARGET_HEIMDALL)
 
     ```
+
+Note: the BUILD_SPEC parameter controls the build so that it only produces artifacts required for the SSP side. The stack will not create the EKS cluster. It will only build and upload images to ECR in the target account. 
 
 2. Start a new terminal session and navigate to the target account by setting AWS credentials and context to use it (e.g. switching AWS CLI profile). Starting a new session is required in order avoid context pollution from your previous runs. 
 
@@ -337,7 +341,7 @@ We have prepared commands for you to accomplish steps #2 and #3.
     ✅ RTBBuildStack
     ```
 
-8. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy both infrastructure and the `Real-Time-Bidding Solution` in your AWS Account using CloudFormation. 
+8. After the CDK deployment is complete, a CodeBuild project will be provisioned ready to build and deploy the SSP portion (load generator) of `Real-Time-Bidding Solution` in your AWS Account. 
 
 9. Kick off the CodeBuild build by running the following command:
 
@@ -345,13 +349,9 @@ We have prepared commands for you to accomplish steps #2 and #3.
 cd ../.. # return to the project root
 aws codebuild start-build --project-name "rtb-build-project"
 ```
-This will take approximately twenty minutes. You can navigate to AWS Console (UI) and find the CodeBuild project named `rtb-build-prpject` and observe the execution of the latest run through the logs. 
+This will take a few minutes. You can navigate to AWS Console (UI) and find the CodeBuild project named `rtb-build-prpject` and observe the execution of the latest run through the logs. You can verify that the build is successful by navigating to ECR and observing that it created ECR repositories name like `<YOUR_STACK_NAME>-load-generator`.
 
-Once successful you will see:
-
-    ![Build Success](./images/buildsuccess.png)
-
-10. Run `make publisher-eks@provision` in the publisher account. This will provision a new VPC with a well-architected EKS cluster in Auto Mode. The cluster has an ARM Node Pool, managed Karpenter and a number of add-ons out of the box.
+10. (Ensure eksctl tool is installed locally) Run `make publisher-eks@provision` in the publisher account. This will provision a new VPC with a well-architected EKS cluster in Auto Mode. The cluster has an ARM Node Pool, managed Karpenter and a number of add-ons out of the box.
 
 11. The above command will automatically update your .kube/config. You can validate access by running:
 ```
