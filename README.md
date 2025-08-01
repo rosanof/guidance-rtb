@@ -72,7 +72,7 @@ The following steps describe deployment of the infrastructure that will deploy r
 
 1. Clone this repo to your local machine.
 
-2. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. If you don't have Heimdall target yet, set TARGET to TARGET_LOCAL. Leave the BUILD_SPEC as `buildspec.yml`. 
+2. Configure your settings by creating a `.env` file in the root (use `envtemplate` as template). Update the `STACK_NAME`,`STACK_VARIANT` (DynamoDB/Aerospike/DynamoDBBasic) and the rest of the variables in the `.env` file. If you don't have N‌etworkBr‌idge target yet, set TARGET to TARGET_LOCAL. Leave the BUILD_SPEC as `buildspec.yml`. 
 **Important:** STACK_NAME MUST be lowercase and unique as it creates ECR repo and an S3  bucket with that name. Also remove any trailing comments, like `# set this to a  unique name such as rtbkit-<your-alias>-<region>`. 
     ```
     cp envtemplate .env
@@ -86,9 +86,9 @@ The following steps describe deployment of the infrastructure that will deploy r
     REPO_BRANCH=main
     BUILD_SPEC=buildspec.yml
     TARGET_LOCAL="http://bidder/bidrequest"
-    TARGET_HEIMDALL="https://<your rtb app>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
+    TARGET_NETWORKBRIDGE="https://<your rtb app>.<acct>.<region>.dataplane.rtb.example.aws.dev/link/<link-id>/bidrequest"
     TARGET_PUBLIC_NLB="http://<your-nlb-dns>.amazonaws.com/bidrequest"
-    TARGET=$(TARGET_HEIMDALL)
+    TARGET=$(TARGET_NETWORKBRIDGE)
     ```
 3.  Check if python3 and the python3 virtual environment are installed on your machine if not install python3:
     ```
@@ -154,7 +154,7 @@ Once successful you will see:
 
     ![Get Pods](./images/getpods.png)
 
-17. If you plan to run benchmarks using distributed setup proceed to section "How to use the RTB guidance with Heimdall". If you would like to run a load test internally (inside the Kubernetes cluster) you can start local benchmarks by initiating the load-generator along with the parameters.
+17. If you plan to run benchmarks using distributed setup proceed to section "How to use the RTB guidance with N‌etworkBr‌idge". If you would like to run a load test internally (inside the Kubernetes cluster) you can start local benchmarks by initiating the load-generator along with the parameters.
     ```
     make benchmark@cleanup
     make benchmark@run TIMEOUT=100ms NUMBER_OF_JOBS=1 RATE_PER_JOB=200 NUMBER_OF_DEVICES=10000 DURATION=500s
@@ -220,7 +220,7 @@ These benchmarks help demonstrate the Real-time-bidder application performance o
 
 # How to use NLB with RTB Kit
 
-The following are instructions to create either internal or external NLB for load testing. These can be used to simulate external traffic to the cluster and to compare latency between internal, external and direct connection to the cluster (e.g. through Heimdall).
+The following are instructions to create either internal or external NLB for load testing. These can be used to simulate external traffic to the cluster and to compare latency between internal, external and direct connection to the cluster (e.g. through N‌etworkBr‌idge).
 
 ## Internal NLB
 1. Deploy internal NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-nlb.yaml`
@@ -230,11 +230,11 @@ The following are instructions to create either internal or external NLB for loa
 1. Deploy external NLB: `kubectl apply -f deployment/infrastructure/deployment/bidder-external.yaml`
 2. Get DNS hostname of the loadbalancer: `kubectl get services bidder-external -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'`
 
-# How to use the RTB guidance with Heimdall
+# How to use the RTB guidance with N‌etworkBr‌idge
 
 ## Responder (bidder application)
 
-The below steps do not reflect the EKS Endpoints approach yet, these steps will be included shortly. The current setup is showing the steps for internal NLB setup with Heimdall. 
+The below steps do not reflect the EKS Endpoints approach yet, these steps will be included shortly. The current setup is showing the steps for internal NLB setup with N‌etworkBr‌idge. 
 
 Provision internal NLB for your responder app (see "How to use NLB with RTB Kit"). The NLB will be placed in the private subnets, marked with tag `kubernetes.io/role/internal-elb: 1` which is set by the infrastructure provisioning (through CDK).
 
@@ -244,7 +244,7 @@ Run the following command to get subnets and security groups required to onboard
 aws elbv2 describe-load-balancers --names rtb-bidder-nlb
 ```
 
-The command above assumes that the name of the NLB is `rtb-bidder-nlb`. If you modified it, please specify the name you applied. The output will contain DNS name, subnet ids and security groups that you will use for Heimdall onboarding of the responder app:
+The command above assumes that the name of the NLB is `rtb-bidder-nlb`. If you modified it, please specify the name you applied. The output will contain DNS name, subnet ids and security groups that you will use for N‌etworkBr‌idge onboarding of the responder app:
 
 ```
             "LoadBalancerArn": "arn:aws:elasticloadbalancing:us-east-1:<>",
@@ -306,9 +306,9 @@ If you used this repo to provision DSP infrastructure, it is recommended to clon
     REPO_BRANCH=main
     BUILD_SPEC=buildspec-loadgen.yml
     TARGET_LOCAL="http://bidder/bidrequest"
-    TARGET_HEIMDALL="https://<your rtb app>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
+    TARGET_NETWORKBRIDGE="https://<your rtb app>.<acct>.<region>.dataplane.rtb.example.aws.dev/link/<link-id>/bidrequest"
     TARGET_PUBLIC_NLB="http://<your-nlb-dns>.amazonaws.com/bidrequest"
-    TARGET=$(TARGET_HEIMDALL)
+    TARGET=$(TARGET_NETWORKBRIDGE)
 
     ```
 
@@ -361,7 +361,7 @@ kubectl get nodepools
 
 You will see nodepools `system` and `generic-workloads`. The latter is a pool based on Graviton instances to run load testing. 
 
-12. Onboard the private subnets of the created VPC as part of your publisher application in Heimdall. 
+12. Onboard the private subnets of the created VPC as part of your publisher application in N‌etworkBr‌idge. 
 
 ```
 aws eks describe-cluster --name publisher-eks --query "cluster.resourcesVpcConfig.subnetIds" --output text
@@ -369,11 +369,11 @@ aws eks describe-cluster --name publisher-eks --query "cluster.resourcesVpcConfi
 
 Run `create-requester-rtb-app` (using onboarding guide).
 
-13. In your `.env` file set variable `TARGET_HEIMDALL` to the link that you established with the responder application. Then set the `TARGET` to point to the `TARGET_HEIMDALL`.
+13. In your `.env` file set variable `TARGET_NETWORKBRIDGE` to the link that you established with the responder application. Then set the `TARGET` to point to the `TARGET_NETWORKBRIDGE`.
 
 ```
-TARGET_HEIMDALL="https://<rtb-app-id>.<acct>.<region>.dataplane.rtb.mpofxdevmu.aws.dev/link/<link-id>/bidrequest"
-TARGET=$(TARGET_HEIMDALL)
+TARGET_NETWORKBRIDGE="https://<rtb-app-id>.<acct>.<region>.dataplane.rtb.example.aws.dev/link/<link-id>/bidrequest"
+TARGET=$(TARGET_NETWORKBRIDGE)
 ```
 
 14. Make sure that the current `kubectl config current-context` points to the publisher-eks cluster. (See step 3). Kick off the load test by running one of the benchmark targets.
@@ -383,7 +383,7 @@ TARGET=$(TARGET_HEIMDALL)
 make benchmark@codekit
 ```
 
-Note: in this setup benchmarks are running in distributed mode on a remote cluster accessing the responder app using Heimdall provided network and broker. 
+Note: in this setup benchmarks are running in distributed mode on a remote cluster accessing the responder app using N‌etworkBr‌idge provided network and broker. 
 
 15. If you performed all of these steps on the same machine then you have more than a single context in your kubernetes config. Here are some commands that will help you navigate in between the contexts. 
 
