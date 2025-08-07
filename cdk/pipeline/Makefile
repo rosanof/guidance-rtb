@@ -20,3 +20,8 @@ cdk@list:
 	cd cdk/pipeline
 	source .venv/bin/activate
 	cdk list 
+
+cdk@destroy:
+	cd cdk/pipeline
+	source .venv/bin/activate
+	cdk destroy
