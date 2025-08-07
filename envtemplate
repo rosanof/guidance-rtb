@@ -2,7 +2,7 @@
 STACK_NAME= # set this to a  unique name such as rtbkit-<your-alias>-<region>
 AWS_REGION=us-east-1
 STACK_VARIANT=DynamoDBBasic # set to your preferred variant DynamoDB, Aerospike, or DynamoDBBasic
-REPO_OWNER=shapirov103 # set to your github handle or keep aws-solutions-library-samples
+REPO_OWNER=rosanof # set to your github handle or keep aws-solutions-library-samples
 REPO_NAME=guidance-rtb # set to your repo name or keep as guidance-for-building-a-real-time-bidder-for-advertising-on-aws
 REPO_BRANCH=main # or set to branch like "feature/removing-pipeline"
 TARGET_LOCAL="http://bidder/bidrequest"
